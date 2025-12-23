@@ -27,6 +27,7 @@
  */
 
 /* Standard includes. */
+#include "port.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -433,6 +434,7 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iTaskErrno;
     #endif
+    riscv_prv_mode_t prv_mode;
 } tskTCB;
 
 /* The old tskTCB name is maintained above then typedefed to the new TCB_t name
@@ -2005,6 +2007,13 @@ static void prvInitialiseNewTask( TaskFunction_t pxTaskCode,
     {
         /* Pass the handle out in an anonymous way.  The handle can be used to
          * change the created task's priority, delete the created task, etc.*/
+         if(pvParameters != NULL){
+            pxNewTCB->prv_mode = ((task_defualt_args_t *)pvParameters)->prv_mode;
+         }
+         else{
+            pxNewTCB->prv_mode = RISCV_PRV_U_MODE;
+         }
+         
         *pxCreatedTask = ( TaskHandle_t ) pxNewTCB;
     }
     else
@@ -8694,3 +8703,7 @@ void vTaskResetState( void )
     #endif /* #if ( configGENERATE_RUN_TIME_STATS == 1 ) */
 }
 /*-----------------------------------------------------------*/
+
+riscv_prv_mode_t uxTaskCurrentPrvModeGet(void){
+    return pxCurrentTCB->prv_mode;
+}

@@ -35,6 +35,7 @@
 #endif
 
 #include "list.h"
+#include "port.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -3765,6 +3766,13 @@ void vTaskInternalSetTimeOutState( TimeOut_t * const pxTimeOut ) PRIVILEGED_FUNC
                                           int32_t lInternalIndexOfKernelObject ) PRIVILEGED_FUNCTION;
 
 #endif /* #if ( ( portUSING_MPU_WRAPPERS == 1 ) && ( configUSE_MPU_WRAPPERS_V1 == 0 ) && ( configENABLE_ACCESS_CONTROL_LIST == 1 ) ) */
+
+typedef struct{
+    riscv_prv_mode_t prv_mode;
+    void *args;
+}task_defualt_args_t;
+
+extern riscv_prv_mode_t uxTaskCurrentPrvModeGet(void);
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

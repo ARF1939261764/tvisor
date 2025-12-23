@@ -1,5 +1,3 @@
-
-#include "port.h"
 #include "port_asm.h"
 
 .global pxPortInitialiseStack_asm
@@ -7,6 +5,7 @@
 .global freertos_risc_v_mtimer_interrupt_handler
 .global freertos_risc_v_stimer_interrupt_handler
 .global freertos_risc_v_exception_handler
+.global vPortSwitchCtx
 
 /*
  * Unlike other ports pxPortInitialiseStack() is written in assembly code as it
@@ -47,6 +46,7 @@ pxPortInitialiseStack_asm:
     andi t0, t0, ~0x102                   /* Ensure interrupts are disabled when the stack is restored within an ISR.  Required when a task is created after the schedulre has been started, otherwise interrupts would be disabled anyway. */
     addi t1, x0, 0x020                   /* Generate the value 0x22, which are the SPIE and SIE bits to set in sstatus. */
     or t0, t0, t1                       /* Set SPIE and SPP bits in sstatus value. */
+    or t0, t0, a3
     //save context
     store_x t0,portSTACK_SSTATUS_IDX                 * portWORD_SIZE(a0)//sstatus
     store_x x0,portSTACK_XCRITICALNESTING_IDX        * portWORD_SIZE(a0)//xCriticalNesting
@@ -63,6 +63,9 @@ freertos_risc_v_mtimer_interrupt_handler:
     j .
 
 freertos_risc_v_exception_handler:
+    csrr a0,scause
+    li   a1,0x8
+    bne a0,a1,other
     portcontext_SAVE_CONTEXT_EXCEPTION
     call vTaskSwitchContext
     portcontext_RESTORE_CONTEXT
@@ -75,4 +78,18 @@ freertos_risc_v_stimer_interrupt_handler:
     portcontext_RESTORE_CONTEXT
     sret
 
+vPortSwitchCtx:
+    csrr a0,sstatus
+    csrr a1,sstatus
+    sll a0,a0,(5-1)
+    andi a0,a0,1 << 5
+    andi a1,a1,~(1 << 1)
+    or a0,a0,a1
+    csrw sstatus,a0
+    portcontext_SAVE_CONTEXT_FUNC
+    call vTaskSwitchContext
+    portcontext_RESTORE_CONTEXT
+    sret
 
+other:
+    j .

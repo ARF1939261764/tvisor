@@ -3,8 +3,10 @@
  * license and copyright intentionally withheld to promote copying into user code.
  */
 
+#include "port.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include <stdint.h>
 
 BaseType_t xPortStartScheduler( void )
 {
@@ -23,12 +25,19 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
                                      void * pvParameters )
 {
     StackType_t *StackType;
+    uint32_t prv_mode = 0;//0:U,1:S
     extern StackType_t * pxPortInitialiseStack_asm( StackType_t * pxTopOfStack,
                                      TaskFunction_t pxCode,
-                                     void * pvParameters );
-    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters);
+                                     void * pvParameters,
+                                    uint32_t prv_mode);
+    if((pvParameters!=NULL ? ((task_defualt_args_t *)pvParameters)->prv_mode : RISCV_PRV_U_MODE) == RISCV_PRV_S_MODE){
+        prv_mode = 1 << 8;
+    }
+    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters,prv_mode);
+    
     return StackType;
 }
+
 
 void vPortYield( void )
 {

@@ -1,3 +1,4 @@
+#include "port.h"
 #include "printf.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -6,8 +7,10 @@
 #include "timers.h" /* Software timer related API prototypes. */
 #include "semphr.h" /* Semaphore related API prototypes. */
 #include <stddef.h>
+#include "stdint.h"
 #include <sys/cdefs.h>
 #include "csr.h"
+#include "tvisor.h"
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
 // TIMER扩展功能ID
@@ -30,7 +33,8 @@ TaskHandle_t task_1_main_handler;
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                         char * pcTaskName ){
-
+                                            printf("pcTaskName:%s,stack overflow...",pcTaskName);
+                                            while(1);
                                         }
 
 struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
@@ -82,7 +86,8 @@ void task_0_main( void * arg ){
     int i=0;
     printf("enter task_0_main...\n");
     while(1){
-        printf("task_0_main:%d\n",i++);
+        printf("task_0_main:%d,mode = %d\n",i++,uxTaskCurrentPrvModeGet());
+        printf("task_0_main:hello u mode!\n");
         vTaskDelay(10);
     }
 }
@@ -93,30 +98,25 @@ void task_1_main( void * arg ){
     int i=0;
     printf("enter task_1_main...\n");
     while(1){
-        printf("task_1_main:%d\n",i++);
+        printf("task_1_main:%d,mode = %d\n",i++,uxTaskCurrentPrvModeGet());
+        sbi_print("task_1_main:hello opensbi!\n");
         vTaskDelay(10);
     }
 }
 
-int freertos_main(void){
-    sbi_print("hello opensbi!\n");
-    xTaskCreate(task_0_main,"task_0_main",2028,NULL,4,&task_0_main_handler);
-    xTaskCreate(task_1_main,"task_1_main",2028,NULL,4,&task_1_main_handler);
-    vTaskStartScheduler();
-    // task_1_main(NULL);
-    return 0;
-}
-
- extern int freertos_main(void);
-
 int main(void){
-  uint32_t value; 
-  // value = read_csr(misa);
-  printf("hello world,misa=%08x\n",value);
-  // cpu_switch_to_hs_mode();
-  // cpu_switch_to_vs_mode();
-  printf("freertos_main......\n");
-  freertos_main();
+    sbi_print("hello opensbi!\n");
+    task_defualt_args_t task_0_args = {
+        .prv_mode = RISCV_PRV_U_MODE,
+        .args = NULL,
+    };
+    task_defualt_args_t task_1_args = {
+        .prv_mode = RISCV_PRV_S_MODE,
+        .args = NULL,
+    };
+    xTaskCreate(task_0_main,"task_0_main",2028,&task_0_args,4,&task_0_main_handler);
+    xTaskCreate(task_1_main,"task_1_main",2028,&task_1_args,4,&task_1_main_handler);
+    vTaskStartScheduler();
 }
 
  

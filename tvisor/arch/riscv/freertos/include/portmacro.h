@@ -16,6 +16,9 @@
  *-----------------------------------------------------------
  */
 
+#include "port.h"
+#include <stdint.h>
+
 /* Type definitions. */
 #define portCHAR                 char
 #define portFLOAT                float
@@ -102,7 +105,17 @@ typedef unsigned char    UBaseType_t;
 #endif /* if ( configNUMBER_OF_CORES == 1 ) */
 
 extern void vPortYield( void );
-#define portYIELD()                                           __asm volatile ( "ecall" )
+extern void vPortSwitchCtx(void);
+
+
+#define portYIELD()                                do{\
+    if(uxTaskCurrentPrvModeGet() == RISCV_PRV_S_MODE){\
+        vPortSwitchCtx();\
+    }\
+    else{\
+        __asm volatile ( "ecall" );\
+    }\
+}while(0)           
 
 /* Task function macros as described on the FreeRTOS.org WEB site. */
 #define portTASK_FUNCTION_PROTO( vFunction, pvParameters )    void vFunction( void * pvParameters )

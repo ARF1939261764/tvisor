@@ -326,6 +326,7 @@ struct sbi_trap_context *sbi_trap_handler(struct sbi_trap_context *tcntx)
 
 	switch (mcause) {
 	case CAUSE_ILLEGAL_INSTRUCTION:
+		sbi_printf("illegal instruction handler failed,mcause = %016lx,mepc = %016lx,mtval = %016lx\r\n",mcause,csr_read(mepc),csr_read(mtval));
 		rc  = sbi_illegal_insn_handler(tcntx);
 		msg = "illegal instruction handler failed";
 		break;
