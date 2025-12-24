@@ -58,6 +58,9 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     tvisor_vm_list[vmid] = vm_ctx;
     //tcb
     vTaskEnterCritical();
+    if(vm_ctx->entry_point_addr == NULL){
+        vm_ctx->entry_point_addr = tvisor_vm_host_task;
+    }
     xreturn = xTaskCreate((TaskFunction_t)vm_ctx->entry_point_addr,vm_ctx->name,TVISOR_TASK_STACK_DEPTH,&vm_task_args,vm_ctx->uxPriority,&(vm_ctx->tcb));
     if(xreturn == pdPASS){
         vTaskSuspend(vm_ctx->tcb);

@@ -34,7 +34,7 @@ typedef struct{
 typedef tvisor_dev_ctx_t *tvisor_dev_ctx_ptr_t;
 
 typedef struct{
-    size_t entry_point_addr;
+    TaskFunction_t entry_point_addr;
     char *name;
     tvisor_dev_ctx_t *dev_list;
     TaskHandle_t tcb;
