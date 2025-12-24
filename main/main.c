@@ -1,5 +1,5 @@
 #include "port.h"
-#include "printf.h"
+#include "tvisor_printf.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "task.h" /* RTOS task related API prototypes. */
@@ -33,7 +33,7 @@ TaskHandle_t task_1_main_handler;
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                         char * pcTaskName ){
-                                            printf("pcTaskName:%s,stack overflow...",pcTaskName);
+                                            tvisor_printf("pcTaskName:%s,stack overflow...",pcTaskName);
                                             while(1);
                                         }
 
@@ -77,30 +77,32 @@ struct sbiret sbi_timer_set(uint64_t timeout) {
 
 void irq_stimer_handler(void){
     size_t t;
-    t = 100000+read_csr(time);
+    t = 10000+read_csr(time);
     sbi_timer_set( t);
 }
 
 
 void task_0_main( void * arg ){
     int i=0;
-    printf("enter task_0_main...\n");
+    tvisor_printf("enter task_0_main...\n");
     while(1){
-        printf("task_0_main:%d,mode = %d\n",i++,uxTaskCurrentPrvModeGet());
-        printf("task_0_main:hello u mode!\n");
-        vTaskDelay(10);
+        tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(time),uxTaskCurrentPrvModeGet());
+        tvisor_printf("task_0_main:hello u mode!\n");
+        vTaskDelay(100);
     }
 }
 
-
+tvisor_vm_ctx_t vm_ctx;
 
 void task_1_main( void * arg ){
     int i=0;
-    printf("enter task_1_main...\n");
+    tvisor_printf("enter task_1_main...\n");
+    tvisor_vm_create(&vm_ctx);
+    tvisor_vm_run(&vm_ctx);
     while(1){
-        printf("task_1_main:%d,mode = %d\n",i++,uxTaskCurrentPrvModeGet());
+        tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(time),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");
-        vTaskDelay(10);
+        vTaskDelay(100);
     }
 }
 

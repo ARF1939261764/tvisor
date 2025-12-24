@@ -2,9 +2,15 @@
 #define __TVISOR_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
+
+#define TVISOR_STATUS_ERROR (-1)
+#define TVISOR_STATUS_OK    ( 0)
+
+#define TVISOR_TASK_STACK_DEPTH   (2048)
 
 typedef enum {
     TVISOR_DEV_TYPE_PLIC,
@@ -28,15 +34,20 @@ typedef struct{
 typedef tvisor_dev_ctx_t *tvisor_dev_ctx_ptr_t;
 
 typedef struct{
+    size_t entry_point_addr;
+    char *name;
     tvisor_dev_ctx_t *dev_list;
     TaskHandle_t tcb;
-    
-}t_vm_ctx_t;
+    uint8_t vmid;
+    UBaseType_t uxPriority;
+}tvisor_vm_ctx_t;
 
-typedef t_vm_ctx_t *t_vm_ctx_ptr_t;
+typedef tvisor_vm_ctx_t *tvisor_vm_ctx_ptr_t;
 
-extern int tvisor_vm_create(t_vm_ctx_ptr_t vm_ctx);
-extern int tvisor_vm_run(t_vm_ctx_ptr_t vm_ctx);
-extern int tvisor_dev_create(t_vm_ctx_ptr_t vm_ctx,tvisor_dev_ctx_ptr_t dev_ctx);
+extern int tvisor_init(void);
+extern int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx);
+extern int tvisor_vm_run(tvisor_vm_ctx_ptr_t vm_ctx);
+extern int tvisor_dev_create(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_dev_ctx_ptr_t dev_ctx);
+
 
 #endif

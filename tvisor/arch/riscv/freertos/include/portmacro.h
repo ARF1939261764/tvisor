@@ -76,8 +76,18 @@ typedef unsigned char    UBaseType_t;
 /* Disable the interrupts */
 #define portDISABLE_INTERRUPTS()    do {} while( 0 )
 
+// #define portDISABLE_INTERRUPTS()    do {\
+//     __asm volatile ( "li a0,1 << 5" );\
+//     __asm volatile ( "csrc sie,a0" );\
+//  } while( 0 )
+
 /* Enable the interrupts */
-#define portENABLE_INTERRUPTS()     do {} while( 0 )
+#define portENABLE_INTERRUPTS()      do {} while( 0 )
+
+// #define portENABLE_INTERRUPTS()    do {\
+//     __asm volatile ( "li a0,1 << 5" );\
+//     __asm volatile ( "csrs sie,a0" );\
+//  } while( 0 )
 
 #if ( configNUMBER_OF_CORES == 1 )
 /* preserve current interrupt state and then disable interrupts */

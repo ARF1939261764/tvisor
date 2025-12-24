@@ -28,8 +28,8 @@ set(DIR_TARGET_SRC
     tvisor/freertos/stream_buffer.c
     tvisor/freertos/croutine.c
     tvisor/freertos/heap_4.c
+    tvisor/tvisor_printf.c
     tvisor/tvisor.c
-    main/printf.c
     main/system.c
     main/main.c
 )

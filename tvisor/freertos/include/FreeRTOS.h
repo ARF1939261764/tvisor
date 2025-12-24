@@ -349,7 +349,7 @@
 #endif
 
 #ifndef portCRITICAL_NESTING_IN_TCB
-    #define portCRITICAL_NESTING_IN_TCB    0
+    #define portCRITICAL_NESTING_IN_TCB    1
 #endif
 
 #ifndef configMAX_TASK_NAME_LEN
