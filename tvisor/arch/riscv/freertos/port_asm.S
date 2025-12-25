@@ -41,14 +41,15 @@
 pxPortInitialiseStack_asm:
     //stack
     addi a0,a0,-portSTACK_FRAME_SIZE
-    //satstus
-    csrr t0, sstatus                    /* Obtain current mstatus value. */
-    andi t0, t0, ~0x102                   /* Ensure interrupts are disabled when the stack is restored within an ISR.  Required when a task is created after the schedulre has been started, otherwise interrupts would be disabled anyway. */
-    addi t1, x0, 0x020                   /* Generate the value 0x22, which are the SPIE and SIE bits to set in sstatus. */
-    or t0, t0, t1                       /* Set SPIE and SPP bits in sstatus value. */
+    //sstatus
+    li t0,portSSTATUS_DEFAULT_VALUE
     or t0, t0, a3
+    //hstatus
+    li t1,portHSTATUS_DEFAULT_VALUE
+    or t1, t1, a4
     //save context
     store_x t0,portSTACK_SSTATUS_IDX                 * portWORD_SIZE(a0)//sstatus
+    store_x t1,portSTACK_HSTATUS_IDX                 * portWORD_SIZE(a0)//hstatus
     store_x x0,portSTACK_XCRITICALNESTING_IDX        * portWORD_SIZE(a0)//xCriticalNesting
     store_x a2,portSTACK_PVPARAMETERS_IDX            * portWORD_SIZE(a0)//pvParameters
     store_x a1,portSTACK_PXCODE_IDX                  * portWORD_SIZE(a0)//task start address
@@ -63,9 +64,9 @@ freertos_risc_v_mtimer_interrupt_handler:
     j .
 
 freertos_risc_v_exception_handler:
-    csrr a0,scause
-    li   a1,0x8
-    bne a0,a1,other
+    // csrr a0,scause
+    // li   a1,0x8
+    // bne a0,a1,other
     portcontext_SAVE_CONTEXT_EXCEPTION
     call vTaskSwitchContext
     portcontext_RESTORE_CONTEXT

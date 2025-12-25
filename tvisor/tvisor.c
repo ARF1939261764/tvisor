@@ -5,6 +5,7 @@
 #include "tvisor_config.h"
 #include <stdint.h>
 #include "tvisor_printf.h"
+#include "riscv_csr_encoding.h"
 
 
 static tvisor_vm_ctx_ptr_t tvisor_vm_list[TVISOR_MAX_VM_NUM];
@@ -13,7 +14,7 @@ static void tvisor_vm_host_task(void *args){
     void sbi_print(char *str);
     while(1){
         vTaskDelay(100);
-        sbi_print("hello world!vm.....\r\n");
+        tvisor_printf("hello world!vm.....,sscratch = %016lx\r\n",read_csr(sscratch));
     }
 }
 
@@ -47,7 +48,7 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     BaseType_t xreturn;
     tvisor_vm_ctx_ptr_t  new_vm_ctx;
     task_defualt_args_t vm_task_args = {
-        .prv_mode = RISCV_PRV_S_MODE,
+        .prv_mode = RISCV_PRV_VS_MODE,
         .args     = NULL
     };
     //malloc vmid

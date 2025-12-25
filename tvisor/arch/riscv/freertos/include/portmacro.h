@@ -119,7 +119,7 @@ extern void vPortSwitchCtx(void);
 
 
 #define portYIELD()                                do{\
-    if(uxTaskCurrentPrvModeGet() == RISCV_PRV_S_MODE){\
+    if((uxTaskCurrentPrvModeGet() == RISCV_PRV_S_MODE)){\
         vPortSwitchCtx();\
     }\
     else{\

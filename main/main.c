@@ -100,7 +100,7 @@ void task_1_main( void * arg ){
     tvisor_vm_create(&vm_ctx);
     tvisor_vm_run(&vm_ctx);
     while(1){
-        tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(time),uxTaskCurrentPrvModeGet());
+        tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");
         vTaskDelay(100);
     }
@@ -116,6 +116,9 @@ int main(void){
         .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
+    write_csr(sscratch, 1);
+    write_csr(vsscratch, 2);
+    tvisor_printf("%lx\n",8589934592);
     xTaskCreate(task_0_main,"task_0_main",2028,&task_0_args,4,&task_0_main_handler);
     xTaskCreate(task_1_main,"task_1_main",2028,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();

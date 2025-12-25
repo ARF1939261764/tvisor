@@ -25,15 +25,21 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
                                      void * pvParameters )
 {
     StackType_t *StackType;
-    uint32_t prv_mode = 0;//0:U,1:S
+    uint8_t prv_mode = 0;//0:U,1:S
+    uint64_t sstatus_mask = 0;//0:U,1:S
+    uint64_t hstatus_mask = 0;//0:U,1:S
     extern StackType_t * pxPortInitialiseStack_asm( StackType_t * pxTopOfStack,
                                      TaskFunction_t pxCode,
                                      void * pvParameters,
-                                    uint32_t prv_mode);
-    if((pvParameters!=NULL ? ((task_defualt_args_t *)pvParameters)->prv_mode : RISCV_PRV_U_MODE) == RISCV_PRV_S_MODE){
-        prv_mode = 1 << 8;
+                                    uint64_t sstatus_mask,uint64_t hstatus_mask);
+    prv_mode = pvParameters!=NULL ? ((task_defualt_args_t *)pvParameters)->prv_mode : RISCV_PRV_U_MODE;
+    if((prv_mode == RISCV_PRV_S_MODE) || (prv_mode == RISCV_PRV_HS_MODE) || (prv_mode == RISCV_PRV_VS_MODE)){
+        sstatus_mask = 1 << 8;
     }
-    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters,prv_mode);
+    if((prv_mode == RISCV_PRV_VS_MODE) || (prv_mode == RISCV_PRV_VU_MODE)){
+        hstatus_mask = 1 << 7;
+    }
+    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters,sstatus_mask,hstatus_mask);
     
     return StackType;
 }

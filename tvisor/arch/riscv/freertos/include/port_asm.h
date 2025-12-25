@@ -4,10 +4,19 @@
 #define store_x          sd
 #define load_x           ld
 
+//portSSTATUS_DEFAULT_VALUE
+//SPIE == 1
+//SIE  == 0
+//FS   == 1(initial)
+//UXL  == 2(64bit)
+#define portSSTATUS_DEFAULT_VALUE              (0x0000000200002020UL)
+
+#define portHSTATUS_DEFAULT_VALUE              (0x0000000200000000UL)
+
 #define portWORD_SIZE         (8)
 #define portSTACK_FRAME_SIZE  (32*portWORD_SIZE)
 
- #define portSTACK_RESERVED_IDX                (31)
+ #define portSTACK_HSTATUS_IDX                 (31)
  #define portSTACK_SSTATUS_IDX                 (30)
  #define portSTACK_XCRITICALNESTING_IDX        (29)
  #define portSTACK_X31_IDX                     (28)
@@ -77,6 +86,8 @@
     
     csrr t0, sstatus
     store_x t0, portSTACK_SSTATUS_IDX * portWORD_SIZE( sp )
+    csrr t0, hstatus
+    store_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
     
     load_x t0, pxCurrentTCB          /* Load pxCurrentTCB. */
     store_x sp, 0 ( t0 )             /* Write sp to first TCB member. */
@@ -119,6 +130,10 @@
 
     load_x t0,portSTACK_PXCODE_IDX * portWORD_SIZE(sp)
     csrw sepc,t0
+
+
+    load_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
+    csrw hstatus, t0  
 
     load_x t0, portSTACK_SSTATUS_IDX * portWORD_SIZE( sp )
     csrw sstatus, t0  
