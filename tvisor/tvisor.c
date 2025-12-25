@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "tvisor_printf.h"
 #include "riscv_csr_encoding.h"
+#include "tvisor_mmu.h"
 
 
 static tvisor_vm_ctx_ptr_t tvisor_vm_list[TVISOR_MAX_VM_NUM];

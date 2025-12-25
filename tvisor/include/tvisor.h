@@ -7,10 +7,14 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+
 #define TVISOR_STATUS_ERROR (-1)
 #define TVISOR_STATUS_OK    ( 0)
 
 #define TVISOR_TASK_STACK_DEPTH   (2048)
+
+typedef uint8_t tvisor_vmid_t;
+
 
 typedef enum {
     TVISOR_DEV_TYPE_PLIC,
@@ -22,12 +26,17 @@ typedef enum {
 typedef void* tvisor_dev_handler_t;
 typedef void* tvisor_dev_args_t;
 
+typedef struct tvisor_mem_region_t_struct{
+    void* start_addr;
+    size_t size;
+    uint8_t attr;//mmu leaf pte attribute
+}tvisor_mem_region_t;
+
 typedef struct{
+    tvisor_mem_region_t  region;
     char                 *name;
     tvisor_dev_type_t     type;
     tvisor_dev_args_t     args;
-    size_t                start_addr;
-    size_t                size;
     tvisor_dev_handler_t  handler;
 }tvisor_dev_ctx_t;
 
@@ -38,7 +47,7 @@ typedef struct{
     char *name;
     tvisor_dev_ctx_t *dev_list;
     TaskHandle_t tcb;
-    uint8_t vmid;
+    tvisor_vmid_t vmid;
     UBaseType_t uxPriority;
 }tvisor_vm_ctx_t;
 

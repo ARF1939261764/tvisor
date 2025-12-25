@@ -64,14 +64,13 @@ freertos_risc_v_mtimer_interrupt_handler:
     j .
 
 freertos_risc_v_exception_handler:
-    // csrr a0,scause
-    // li   a1,0x8
-    // bne a0,a1,other
     portcontext_SAVE_CONTEXT_EXCEPTION
-    call vTaskSwitchContext
-    portcontext_RESTORE_CONTEXT
-    sret
-  
+    li   t0,0x8
+    beq a0,t0,freertos_risc_v_ecall_exception_handler
+    li   t0,0xa
+    beq a0,t0,freertos_risc_v_ecall_exception_handler
+    j freertos_risc_v_other_exception_handler
+
 freertos_risc_v_stimer_interrupt_handler:
     portcontext_SAVE_CONTEXT_INTR
     call irq_stimer_handler
@@ -92,5 +91,15 @@ vPortSwitchCtx:
     portcontext_RESTORE_CONTEXT
     sret
 
-other:
+freertos_risc_v_ecall_exception_handler:
+    li t0,1
+    beq a2,t0,freertos_risc_v_ecall_exception_switch_ctx_handler
+    j .
+
+freertos_risc_v_ecall_exception_switch_ctx_handler:
+    call vTaskSwitchContext
+    portcontext_RESTORE_CONTEXT
+    sret
+
+freertos_risc_v_other_exception_handler:
     j .

@@ -8,15 +8,21 @@
 #include "semphr.h" /* Semaphore related API prototypes. */
 #include <stddef.h>
 #include "stdint.h"
+#include <stdint.h>
 #include <sys/cdefs.h>
 #include "csr.h"
 #include "tvisor.h"
+#include "tvisor_mmu.h"
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
 // TIMER扩展功能ID
 #define SBI_TIMER_SET_TIMER    0
 #define SBI_TIMER_CLEAR_IPI    1
 #define SBI_TIMER_SEND_IPI     2
+
+HeapRegion_t HeapRegionList[] = {
+    {.pucStartAddress = (uint8_t *)0xA0000000,.xSizeInBytes = 1536 * 1024 * 1024}
+};
 
 struct sbiret 
 {
@@ -92,12 +98,20 @@ void task_0_main( void * arg ){
     }
 }
 
-tvisor_vm_ctx_t vm_ctx;
+tvisor_vm_ctx_t vm_ctx = {
+    //.entry_point_addr = (TaskFunction_t)0x80000000
+};
 
 void task_1_main( void * arg ){
     int i=0;
+    tvisor_mem_region_t dram_region = {
+        .start_addr = (void *)0x80000000,.size = 0x80000000,.attr = 0xE
+    };
     tvisor_printf("enter task_1_main...\n");
     tvisor_vm_create(&vm_ctx);
+    tvisor_mmu_init(&vm_ctx);
+    tvisor_mmu_region_register(&vm_ctx,  &dram_region);
+    tvisor_mmu_map(&vm_ctx,dram_region.start_addr,dram_region.size);
     tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
@@ -119,6 +133,8 @@ int main(void){
     write_csr(sscratch, 1);
     write_csr(vsscratch, 2);
     tvisor_printf("%lx\n",8589934592);
+    vPortDefineHeapRegions(HeapRegionList);
+    tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     xTaskCreate(task_0_main,"task_0_main",2028,&task_0_args,4,&task_0_main_handler);
     xTaskCreate(task_1_main,"task_1_main",2028,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();

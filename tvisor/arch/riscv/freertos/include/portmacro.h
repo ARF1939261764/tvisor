@@ -77,16 +77,24 @@ typedef unsigned char    UBaseType_t;
 // #define portDISABLE_INTERRUPTS()    do {} while( 0 )
 
 #define portDISABLE_INTERRUPTS()    do {\
-    __asm volatile ( "li tp,1 << 5" );\
-    __asm volatile ( "csrc sie,tp" );\
+    __asm volatile ("addi sp,sp,-8");\
+    __asm volatile ("sd a0,0(sp)");\
+    __asm volatile ( "li a0,1 << 5" );\
+    __asm volatile ("ld a0,0(sp)");\
+    __asm volatile ("addi sp,sp,8");\
+    __asm volatile ( "csrc sie,a0" );\
  } while( 0 )
 
 /* Enable the interrupts */
 // #define portENABLE_INTERRUPTS()      do {} while( 0 )
 
 #define portENABLE_INTERRUPTS()    do {\
-    __asm volatile ( "li tp,1 << 5" );\
-    __asm volatile ( "csrs sie,tp" );\
+    __asm volatile ("addi sp,sp,-8");\
+    __asm volatile ("sd a0,0(sp)");\
+    __asm volatile ( "li a0,1 << 5" );\
+    __asm volatile ("ld a0,0(sp)");\
+    __asm volatile ("addi sp,sp,8");\
+    __asm volatile ( "csrs sie,a0" );\
  } while( 0 )
 
 #if ( configNUMBER_OF_CORES == 1 )
@@ -123,7 +131,12 @@ extern void vPortSwitchCtx(void);
         vPortSwitchCtx();\
     }\
     else{\
-        __asm volatile ( "ecall" );\
+    __asm volatile ("addi sp,sp,-8");\
+    __asm volatile ("sd a2,0(sp)");\
+    __asm volatile ( "li a2,1" );\
+    __asm volatile ( "ecall" );\
+    __asm volatile ("ld a2,0(sp)");\
+    __asm volatile ("addi sp,sp,8");\
     }\
 }while(0)           
 

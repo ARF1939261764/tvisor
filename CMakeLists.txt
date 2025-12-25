@@ -27,8 +27,9 @@ set(DIR_TARGET_SRC
     tvisor/freertos/timers.c
     tvisor/freertos/stream_buffer.c
     tvisor/freertos/croutine.c
-    tvisor/freertos/heap_4.c
+    tvisor/freertos/heap_5.c
     tvisor/tvisor_printf.c
+    tvisor/tvisor_mmu.c
     tvisor/tvisor.c
     main/system.c
     main/main.c
