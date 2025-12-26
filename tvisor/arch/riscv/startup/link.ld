@@ -43,6 +43,7 @@ SECTIONS {
     PROVIDE(__BSS_START__ = .);
     *(.sbss .sbss.* .gnu.linkonce.sb.*)
     *(.tbss .tbss.*)
+    *(.bss .bss.*)
     *(.dynbss) *(.bss .bss.* .gnu.linkonce.b.*) *(COMMON)
     PROVIDE(__BSS_END__ = .);
   } >RAM

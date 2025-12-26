@@ -6,6 +6,7 @@
 #include "port.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include <stddef.h>
 #include <stdint.h>
 
 BaseType_t xPortStartScheduler( void )
@@ -28,10 +29,11 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
     uint8_t prv_mode = 0;//0:U,1:S
     uint64_t sstatus_mask = 0;//0:U,1:S
     uint64_t hstatus_mask = 0;//0:U,1:S
+    size_t hgatp;
     extern StackType_t * pxPortInitialiseStack_asm( StackType_t * pxTopOfStack,
                                      TaskFunction_t pxCode,
                                      void * pvParameters,
-                                    uint64_t sstatus_mask,uint64_t hstatus_mask);
+                                    uint64_t sstatus_mask,uint64_t hstatus_mask,size_t hgatp);
     prv_mode = pvParameters!=NULL ? ((task_defualt_args_t *)pvParameters)->prv_mode : RISCV_PRV_U_MODE;
     if((prv_mode == RISCV_PRV_S_MODE) || (prv_mode == RISCV_PRV_HS_MODE) || (prv_mode == RISCV_PRV_VS_MODE)){
         sstatus_mask = 1 << 8;
@@ -39,7 +41,8 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
     if((prv_mode == RISCV_PRV_VS_MODE) || (prv_mode == RISCV_PRV_VU_MODE)){
         hstatus_mask = 1 << 7;
     }
-    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters,sstatus_mask,hstatus_mask);
+    hgatp = pvParameters!=NULL ? ((task_defualt_args_t *)pvParameters)->hgatp : 0;
+    StackType = pxPortInitialiseStack_asm(pxTopOfStack,pxCode,pvParameters,sstatus_mask,hstatus_mask,hgatp);
     
     return StackType;
 }

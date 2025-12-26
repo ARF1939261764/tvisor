@@ -45,7 +45,8 @@ _continue:
   la a1,__BSS_END__
 _clean_bss_start:
   beq a0,a1,_clean_bss_end
-  add a0,a0,1
+  sw x0,0(a0)
+  add a0,a0,4
   j _clean_bss_start
 _clean_bss_end:
 

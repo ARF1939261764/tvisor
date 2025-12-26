@@ -11,9 +11,15 @@ set(CMAKE_C_COMPILER riscv64-unknown-linux-gnu-gcc)
 set(CMAKE_OBJCOPY riscv64-unknown-linux-gnu-objcopy)
 set(CMAKE_OBJDUMP riscv64-unknown-linux-gnu-objdump)
 set(CMAKE_ASM_COMPILER riscv64-unknown-linux-gnu-gcc)
-#set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+ 
+  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+ 
+endif()
 
 # 收集源文件（推荐手动列出，避免遗漏或误包含）
 set(DIR_TARGET_SRC
@@ -53,9 +59,9 @@ target_include_directories(tvisor PUBLIC
 )
 
 target_compile_options(tvisor PRIVATE   -O0 -g3 -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las -static -std=gnu99 
-                                        -fno-common -fno-builtin-printf -Wa,-march=rv64gch -mabi=lp64d  -mcmodel=medany)
+                                        -fno-common -fno-builtin-printf -march=rv64gch -mabi=lp64d  -mcmodel=medany)
 
-target_link_options(tvisor PRIVATE -static -pie -Wl,--no-warn-rwx-segments -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles  -lc -lgcc -march=rv64ghc -mabi=lp64d)
+target_link_options(tvisor PRIVATE -static -pie -Wl,--no-warn-rwx-segments -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles  -lc -lgcc -march=rv64gch -mabi=lp64d)
 
 add_custom_command(
     TARGET ${CMAKE_PROJECT_NAME}

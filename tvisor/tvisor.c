@@ -58,6 +58,11 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     }
     vm_ctx->vmid = vmid;
     tvisor_vm_list[vmid] = vm_ctx;
+    //mmu->hgatp
+    if(tvisor_mmu_init(vm_ctx) != TVISOR_STATUS_OK){
+        return TVISOR_STATUS_ERROR;
+    }
+    vm_task_args.hgatp = vm_ctx->hgatp;
     //tcb
     vTaskEnterCritical();
     if(vm_ctx->entry_point_addr == NULL){

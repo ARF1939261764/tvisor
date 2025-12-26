@@ -48,6 +48,7 @@ pxPortInitialiseStack_asm:
     li t1,portHSTATUS_DEFAULT_VALUE
     or t1, t1, a4
     //save context
+    store_x a5,portSTACK_HGATP_IDX                   * portWORD_SIZE(a0)//sstatus
     store_x t0,portSTACK_SSTATUS_IDX                 * portWORD_SIZE(a0)//sstatus
     store_x t1,portSTACK_HSTATUS_IDX                 * portWORD_SIZE(a0)//hstatus
     store_x x0,portSTACK_XCRITICALNESTING_IDX        * portWORD_SIZE(a0)//xCriticalNesting

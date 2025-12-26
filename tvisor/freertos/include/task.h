@@ -30,6 +30,7 @@
 #ifndef INC_TASK_H
 #define INC_TASK_H
 
+#include <stdint.h>
 #ifndef INC_FREERTOS_H
     #error "include FreeRTOS.h must appear in source files before include task.h"
 #endif
@@ -3769,6 +3770,7 @@ void vTaskInternalSetTimeOutState( TimeOut_t * const pxTimeOut ) PRIVILEGED_FUNC
 
 typedef struct{
     riscv_prv_mode_t prv_mode;
+    size_t hgatp;
     void *args;
 }task_defualt_args_t;
 

@@ -21,7 +21,8 @@
 #define SBI_TIMER_SEND_IPI     2
 
 HeapRegion_t HeapRegionList[] = {
-    {.pucStartAddress = (uint8_t *)0xA0000000,.xSizeInBytes = 1536 * 1024 * 1024}
+    {.pucStartAddress = (uint8_t *)0xA0000000,.xSizeInBytes = 1536 * 1024 * 1024},
+    {.pucStartAddress = NULL,.xSizeInBytes = 0},
 };
 
 struct sbiret 
@@ -102,17 +103,33 @@ tvisor_vm_ctx_t vm_ctx = {
     //.entry_point_addr = (TaskFunction_t)0x80000000
 };
 
+uint32_t tvisor_vm_read32(size_t addr){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+    __asm volatile ("hlv.d a0,0(a0)");
+    return a0;
+}
+
+void tvisor_vm_write32(size_t addr,uint32_t data){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+	register uintptr_t a1 asm ("a1") = (uintptr_t)(data);
+    __asm volatile ("hsv.d a1,0(a0)");
+}
+
 void task_1_main( void * arg ){
-    int i=0;
-    tvisor_mem_region_t dram_region = {
-        .start_addr = (void *)0x80000000,.size = 0x80000000,.attr = 0xE
+    int i=0;// {}
+    tvisor_dev_ctx_t dev_list[] = {
+        {.region = {.start_addr = 0x80000000,.size = 256*1024,.attr = TVISOR_MMU_PAGE_ATTR_MEM,.pbmt = TVISOR_MMU_PAGE_PBMT_NONE}}
     };
     tvisor_printf("enter task_1_main...\n");
+    vm_ctx.dev_list = dev_list;
+    vm_ctx.dev_num = 1;
     tvisor_vm_create(&vm_ctx);
-    tvisor_mmu_init(&vm_ctx);
-    tvisor_mmu_region_register(&vm_ctx,  &dram_region);
-    tvisor_mmu_map(&vm_ctx,dram_region.start_addr,dram_region.size);
-    tvisor_vm_run(&vm_ctx);
+    tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,8192);
+    tvisor_mmu_dump_map(&vm_ctx,0x80000000);
+    write_csr(hgatp, vm_ctx.hgatp);
+    tvisor_vm_write32(0x80000000,0x12345678);
+    tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000));
+    // tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");
@@ -135,6 +152,11 @@ int main(void){
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
+    void * addr = tvisor_mmu_align_malloc(16384,16384);
+    tvisor_printf("Heap Size:%d,addr=%p\n",xPortGetFreeHeapSize(),addr);
+    tvisor_mmu_align_free(addr);
+    tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
+
     xTaskCreate(task_0_main,"task_0_main",2028,&task_0_args,4,&task_0_main_handler);
     xTaskCreate(task_1_main,"task_1_main",2028,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
