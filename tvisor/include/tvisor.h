@@ -31,6 +31,7 @@
 #define TVISOR_MMU_MODE_SV57         (10UL)
 #define TVISOR_MMU_MODE_SV64         (11UL)
 
+#define TVISOR_MMU_PTE_PPN_MASK      (((1UL << 44) - 1) << 10)
 #define TVISOR_MMU_MODE_SV39_ADDR_MASK  ((1UL << (39 + 2)) - 1)
 
 #define TVISOR_MMU_L0_PTE_NUM        (2048)

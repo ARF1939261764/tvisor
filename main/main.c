@@ -123,12 +123,16 @@ void task_1_main( void * arg ){
     tvisor_printf("enter task_1_main...\n");
     vm_ctx.dev_list = dev_list;
     vm_ctx.dev_num = 1;
+    vTaskEnterCritical();
     tvisor_vm_create(&vm_ctx);
     tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,8192);
     tvisor_mmu_dump_map(&vm_ctx,0x80000000);
+    tvisor_mmu_dump_map(&vm_ctx,0x80000000 + 4096);
     write_csr(hgatp, vm_ctx.hgatp);
+    __asm volatile("HFENCE.GVMA");
     tvisor_vm_write32(0x80000000,0x12345678);
     tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000));
+    vTaskExitCritical();
     // tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());

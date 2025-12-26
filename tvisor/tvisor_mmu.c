@@ -27,7 +27,7 @@ int tvisor_mmu_init(tvisor_vm_ctx_ptr_t vm_ctx){
     if(hgatp == NULL){
         return TVISOR_STATUS_ERROR;
     }
-    vm_ctx->hgatp = ((size_t)hgatp | (TVISOR_MMU_MODE_SV39 << 60) | ((size_t)vm_ctx->vmid << 44));
+    vm_ctx->hgatp = (((size_t)hgatp >> 14) | (TVISOR_MMU_MODE_SV39 << 60) | ((size_t)vm_ctx->vmid << 44));
     for(int i=0;i<TVISOR_MMU_L0_PTE_NUM;i++){
         hgatp[i] = 0;
     }
@@ -38,7 +38,7 @@ static int tvisor_mmu_fill_pte(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_mem_region_t *r
     size_t malloc_size;
     if(!(pte_base[vpn] & TVISOR_MMU_PAGE_ATTR_V)){
         malloc_size = ptw_level == (pte_level + 1) ? page_size : pte_size;
-        pte_base[vpn] = ((size_t)tvisor_mmu_align_malloc(malloc_size,malloc_size)) << 10;
+        pte_base[vpn] = (((size_t)tvisor_mmu_align_malloc(malloc_size,4096)) >> 12) << 10;
         if(pte_base[vpn] == (size_t)NULL){
             return TVISOR_STATUS_ERROR;
         }
@@ -58,14 +58,16 @@ int tvisor_mmu_dump_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr){
     vpn[2] = (start_addr >> 30) & 0x7FF;
     vpn[1] = (start_addr >> 21) & 0x1FF;
     vpn[0] = (start_addr >> 12) & 0x1FF;
-    pte_base = (uint64_t *)(vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK);
+    pte_base = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 14);
     for(int i=0;i<3;i++){
         pte = pte_base[vpn[2-i]];
-        tvisor_printf("tvisor_mmu_dump_map,level %d,pte = %016lx\r\n",i,pte);
+        tvisor_printf("tvisor_mmu_dump_map,leve %d,pte = %016lx\r\n",i,pte);
+        tvisor_printf("    ppn       = 0x%016lx\r\n",((pte & TVISOR_MMU_PTE_PPN_MASK) >> 10));
+        tvisor_printf("    next addr = 0x%016lx\r\n",((pte & TVISOR_MMU_PTE_PPN_MASK) >> 10) << 12);
         if((pte & 0xE) != 0x00){
             break;
         }
-        pte_base = (uint64_t *)((pte >> 10) & TVISOR_MMU_MODE_SV39_ADDR_MASK);
+        pte_base = (uint64_t *)(((pte >> 10) << 12) & TVISOR_MMU_MODE_SV39_ADDR_MASK);
     }
     return TVISOR_STATUS_OK;
 }
@@ -92,7 +94,7 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
     if(dev_idx == vm_ctx->dev_num){
         return TVISOR_STATUS_ERROR;
     }
-    hgatp_addr = (uint64_t *)(vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK);
+    hgatp_addr = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 14);
     if(vm_ctx->dev_list[dev_idx].region.size <= TVISOR_MMU_L0_LEAF_PAGE_SIZE){
         ptw_level = 3;
     }
@@ -127,7 +129,7 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
             ){
                 return TVISOR_STATUS_ERROR;
             }
-            pte_base = (uint64_t *)((pte_base[vpn[2-i]] >> 10) & TVISOR_MMU_MODE_SV39_ADDR_MASK);
+            pte_base = (uint64_t *)(((pte_base[vpn[2-i]] >> 10) << 12) & TVISOR_MMU_MODE_SV39_ADDR_MASK);
         }
         start_addr += leaf_page_size;
         if(size < leaf_page_size){
