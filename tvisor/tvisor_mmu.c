@@ -36,9 +36,11 @@ int tvisor_mmu_init(tvisor_vm_ctx_ptr_t vm_ctx){
 
 static int tvisor_mmu_fill_pte(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_mem_region_t *region,uint64_t *pte_base,uint16_t vpn,uint8_t pte_level,uint8_t ptw_level,size_t page_size,size_t pte_size){
     size_t malloc_size;
+    size_t align_size;
     if(!(pte_base[vpn] & TVISOR_MMU_PAGE_ATTR_V)){
         malloc_size = ptw_level == (pte_level + 1) ? page_size : pte_size;
-        pte_base[vpn] = (((size_t)tvisor_mmu_align_malloc(malloc_size,4096)) >> 12) << 10;
+        align_size  = ptw_level == (pte_level + 1) ? page_size : 4096;
+        pte_base[vpn] = (((size_t)tvisor_mmu_align_malloc(malloc_size,align_size)) >> 12) << 10;
         if(pte_base[vpn] == (size_t)NULL){
             return TVISOR_STATUS_ERROR;
         }
@@ -105,7 +107,7 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
     else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L1_LEAF_PAGE_SIZE){
         ptw_level = 3;
     }
-    else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L1_LEAF_PAGE_SIZE){
+    else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L0_LEAF_PAGE_SIZE){
         ptw_level = 2;
     }
     else{

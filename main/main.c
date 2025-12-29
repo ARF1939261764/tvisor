@@ -116,6 +116,7 @@ void task_1_main( void * arg ){
     vTaskEnterCritical();
     tvisor_vm_create(&vm_ctx);
     tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,8192);
+    tvisor_mmu_dump_map(&vm_ctx, 0x80000000);
     write_csr(hgatp, vm_ctx.hgatp);
     __asm volatile("HFENCE.GVMA");
     __asm volatile("HFENCE.VVMA");
