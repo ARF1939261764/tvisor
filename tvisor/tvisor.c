@@ -84,3 +84,15 @@ int tvisor_vm_run(tvisor_vm_ctx_ptr_t vm_ctx){
     vTaskResume(vm_ctx->tcb);
     return TVISOR_STATUS_OK;
 }
+
+uint32_t tvisor_vm_read32(size_t addr){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+    __asm volatile ("hlv.d a0,0(a0)");
+    return a0;
+}
+
+void tvisor_vm_write32(size_t addr,uint32_t data){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+	register uintptr_t a1 asm ("a1") = (uintptr_t)(data);
+    __asm volatile ("hsv.d a1,0(a0)");
+}

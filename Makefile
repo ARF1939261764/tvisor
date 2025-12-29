@@ -18,7 +18,7 @@ cleanall:
 	make -C ./qemu/qemu-10.2.0-rc1/ -s clean
 
 run:
-	${QEMU} -M virt -cpu rv64,svpbmt=on -m 2G -nographic -bios ./opensbi/opensbi_v1p7/build/platform/generic/firmware/fw_payload.bin
+	${QEMU} -M virt -cpu rv64,svpbmt=on -m 2G -nographic -bios ./opensbi/opensbi_v1p7/build/platform/generic/firmware/fw_payload.bin -d mmu,invalid_mem -D qemu_mmu_log.txt
 
 debug:
 	${QEMU} -M virt -cpu rv64,svpbmt=on -m 2G -nographic -bios ./opensbi/opensbi_v1p7/build/platform/generic/firmware/fw_payload.bin -s -S 

@@ -27,7 +27,7 @@ int tvisor_mmu_init(tvisor_vm_ctx_ptr_t vm_ctx){
     if(hgatp == NULL){
         return TVISOR_STATUS_ERROR;
     }
-    vm_ctx->hgatp = (((size_t)hgatp >> 14) | (TVISOR_MMU_MODE_SV39 << 60) | ((size_t)vm_ctx->vmid << 44));
+    vm_ctx->hgatp = (((size_t)hgatp >> 12) | (TVISOR_MMU_MODE_SV39 << 60) | ((size_t)vm_ctx->vmid << 44));
     for(int i=0;i<TVISOR_MMU_L0_PTE_NUM;i++){
         hgatp[i] = 0;
     }
@@ -58,10 +58,14 @@ int tvisor_mmu_dump_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr){
     vpn[2] = (start_addr >> 30) & 0x7FF;
     vpn[1] = (start_addr >> 21) & 0x1FF;
     vpn[0] = (start_addr >> 12) & 0x1FF;
-    pte_base = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 14);
+    pte_base = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 12);
+    tvisor_printf("hgatp = %016lx,pte base_addr = %p\n",vm_ctx->hgatp,pte_base);
     for(int i=0;i<3;i++){
         pte = pte_base[vpn[2-i]];
-        tvisor_printf("tvisor_mmu_dump_map,leve %d,pte = %016lx\r\n",i,pte);
+        if(!(pte & TVISOR_MMU_PAGE_ATTR_V)){
+            break;
+        }
+        tvisor_printf("tvisor_mmu_dump_map,leve %d,vpn=%4x,pte = %016lx\r\n",i,vpn[2-i],pte);
         tvisor_printf("    ppn       = 0x%016lx\r\n",((pte & TVISOR_MMU_PTE_PPN_MASK) >> 10));
         tvisor_printf("    next addr = 0x%016lx\r\n",((pte & TVISOR_MMU_PTE_PPN_MASK) >> 10) << 12);
         if((pte & 0xE) != 0x00){
@@ -94,14 +98,14 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
     if(dev_idx == vm_ctx->dev_num){
         return TVISOR_STATUS_ERROR;
     }
-    hgatp_addr = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 14);
-    if(vm_ctx->dev_list[dev_idx].region.size <= TVISOR_MMU_L0_LEAF_PAGE_SIZE){
+    hgatp_addr = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 12);
+    if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L2_LEAF_PAGE_SIZE){
         ptw_level = 3;
     }
-    else if(vm_ctx->dev_list[dev_idx].region.size <= TVISOR_MMU_L1_LEAF_PAGE_SIZE){
+    else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L1_LEAF_PAGE_SIZE){
         ptw_level = 3;
     }
-    else if(vm_ctx->dev_list[dev_idx].region.size <= TVISOR_MMU_L2_LEAF_PAGE_SIZE){
+    else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L1_LEAF_PAGE_SIZE){
         ptw_level = 2;
     }
     else{

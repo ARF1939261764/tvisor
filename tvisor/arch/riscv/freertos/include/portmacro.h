@@ -80,9 +80,9 @@ typedef unsigned char    UBaseType_t;
     __asm volatile ("addi sp,sp,-8");\
     __asm volatile ("sd a0,0(sp)");\
     __asm volatile ( "li a0,1 << 5" );\
+    __asm volatile ( "csrc sie,a0" );\
     __asm volatile ("ld a0,0(sp)");\
     __asm volatile ("addi sp,sp,8");\
-    __asm volatile ( "csrc sie,a0" );\
  } while( 0 )
 
 /* Enable the interrupts */
@@ -92,9 +92,9 @@ typedef unsigned char    UBaseType_t;
     __asm volatile ("addi sp,sp,-8");\
     __asm volatile ("sd a0,0(sp)");\
     __asm volatile ( "li a0,1 << 5" );\
+    __asm volatile ( "csrs sie,a0" );\
     __asm volatile ("ld a0,0(sp)");\
     __asm volatile ("addi sp,sp,8");\
-    __asm volatile ( "csrs sie,a0" );\
  } while( 0 )
 
 #if ( configNUMBER_OF_CORES == 1 )
