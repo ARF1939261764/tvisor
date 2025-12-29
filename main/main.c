@@ -108,20 +108,21 @@ tvisor_vm_ctx_t vm_ctx = {
 void task_1_main( void * arg ){
     int i=0;// {}
     tvisor_dev_ctx_t dev_list[] = {
-        {.region = {.start_addr = 0x80000000,.size = 256*1024,.attr = TVISOR_MMU_PAGE_ATTR_MEM | TVISOR_MMU_PAGE_ATTR_U,.pbmt = TVISOR_MMU_PAGE_PBMT_NONE}}
+        {.region = {.start_addr = 0x80000000,.size = 256*1024*1024,.attr = TVISOR_MMU_PAGE_ATTR_MEM | TVISOR_MMU_PAGE_ATTR_U,.pbmt = TVISOR_MMU_PAGE_PBMT_NONE}}
     };
     tvisor_printf("enter task_1_main...\n");
     vm_ctx.dev_list = dev_list;
     vm_ctx.dev_num = 1;
     vTaskEnterCritical();
     tvisor_vm_create(&vm_ctx);
-    tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,8192);
-    tvisor_mmu_dump_map(&vm_ctx, 0x80000000);
+    tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,256*1024*1024);
+    tvisor_mmu_dump_map(&vm_ctx, 0x80000000 + 256*1024*1024 - 4);
     write_csr(hgatp, vm_ctx.hgatp);
     __asm volatile("HFENCE.GVMA");
     __asm volatile("HFENCE.VVMA");
-    tvisor_vm_write32(0x80000000,0x12345678);
-    tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000));
+    tvisor_vm_write32(0x80000000 + 256*1024*1024 - 4,0x12345678);
+    tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000 + 256*1024*1024 - 4));
+    tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     vTaskExitCritical();
     // tvisor_vm_run(&vm_ctx);
     while(1){

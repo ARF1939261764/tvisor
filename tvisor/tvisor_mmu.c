@@ -107,11 +107,8 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
     else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L1_LEAF_PAGE_SIZE){
         ptw_level = 3;
     }
-    else if(vm_ctx->dev_list[dev_idx].region.size < TVISOR_MMU_L0_LEAF_PAGE_SIZE){
-        ptw_level = 2;
-    }
     else{
-        ptw_level = 1;
+        ptw_level = 2;
     }
 
     page_size[0] = TVISOR_MMU_L0_LEAF_PAGE_SIZE;
