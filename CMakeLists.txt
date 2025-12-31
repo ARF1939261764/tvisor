@@ -23,22 +23,27 @@ endif()
 
 # 收集源文件（推荐手动列出，避免遗漏或误包含）
 set(DIR_TARGET_SRC
-    tvisor/arch/riscv/freertos/port.c
-    tvisor/arch/riscv/freertos/port_asm.S
-    tvisor/arch/riscv/startup/crt.S
-    tvisor/freertos/queue.c
-    tvisor/freertos/list.c
-    tvisor/freertos/tasks.c
-    tvisor/freertos/event_groups.c
-    tvisor/freertos/timers.c
-    tvisor/freertos/stream_buffer.c
-    tvisor/freertos/croutine.c
-    tvisor/freertos/heap_5.c
-    tvisor/tvisor_printf.c
-    tvisor/tvisor_mmu.c
-    tvisor/tvisor.c
-    main/system.c
-    main/main.c
+    ./tvisor/arch/riscv/freertos/port.c
+    ./tvisor/arch/riscv/freertos/port_asm.S
+    ./tvisor/arch/riscv/startup/crt.S
+    ./tvisor/freertos/queue.c
+    ./tvisor/freertos/list.c
+    ./tvisor/freertos/tasks.c
+    ./tvisor/freertos/event_groups.c
+    ./tvisor/freertos/timers.c
+    ./tvisor/freertos/stream_buffer.c
+    ./tvisor/freertos/croutine.c
+    ./tvisor/freertos/heap_5.c
+    ./tvisor/tvisor_printf.c
+    ./tvisor/tvisor_mmu.c
+    ./tvisor/tvisor_dev_uart16550.c
+    ./tvisor/tvisor_dev_clint.c
+    ./tvisor/tvisor_dev_mem.c
+    ./tvisor/tvisor_dev_stimer.c
+    ./tvisor/tvisor_dev_plic.c
+    ./tvisor/tvisor.c
+    ./main/system.c
+    ./main/main.c
 )
 
 # 构建可执行文件
