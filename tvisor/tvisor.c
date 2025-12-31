@@ -1,3 +1,4 @@
+#include "alloca.h"
 #include "port.h"
 #include "projdefs.h"
 #include "stdint.h"
@@ -46,6 +47,7 @@ int tvisor_vm_free_vmid(uint8_t id){
 
 int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     uint8_t vmid = TVISOR_MAX_VM_NUM;
+    int i;
     BaseType_t xreturn;
     tvisor_vm_ctx_ptr_t  new_vm_ctx;
     task_defualt_args_t vm_task_args = {
@@ -76,6 +78,12 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     if(xreturn != pdPASS){
         tvisor_vm_free_vmid(vmid);
         vm_ctx->vmid = TVISOR_MAX_VM_NUM;
+        return TVISOR_STATUS_ERROR;
+    }
+    //create device
+    i = 0;
+    while(vm_ctx->dev_list[i].type != TVISOR_DEV_TYPE_NONE){
+        i++;
     }
     return TVISOR_STATUS_OK;
 }
@@ -95,4 +103,20 @@ void tvisor_vm_write32(size_t addr,uint32_t data){
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
 	register uintptr_t a1 asm ("a1") = (uintptr_t)(data);
     __asm volatile ("hsv.w a1,0(a0)");
+}
+
+int tvisor_dev_create_uart16550(){
+    return TVISOR_STATUS_OK;
+}
+
+int tvisor_dev_create_plic(){
+    return TVISOR_STATUS_OK;
+}
+
+int tvisor_dev_create_dram(){
+    return TVISOR_STATUS_OK;
+}
+
+int tvisor_dev_create_stimer(){
+    return TVISOR_STATUS_OK;
 }

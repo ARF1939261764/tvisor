@@ -1,4 +1,5 @@
 #include "port.h"
+#include "tvisor_dev.h"
 #include "tvisor_printf.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -100,7 +101,7 @@ void task_0_main( void * arg ){
 }
 
 tvisor_vm_ctx_t vm_ctx = {
-    //.entry_point_addr = (TaskFunction_t)0x80000000
+    .entry_point_addr = (TaskFunction_t)0x80000000
 };
 
 
@@ -108,8 +109,20 @@ tvisor_vm_ctx_t vm_ctx = {
 void task_1_main( void * arg ){
     int i=0;// {}
     tvisor_dev_ctx_t dev_list[] = {
-        {.region = {.start_addr = 0x80000000,.size = 256*1024*1024,.attr = TVISOR_MMU_PAGE_ATTR_MEM | TVISOR_MMU_PAGE_ATTR_U,.pbmt = TVISOR_MMU_PAGE_PBMT_NONE}}
+        [0] = {
+            .region = {
+                .start_addr = 0x80000000,
+                .size = 256*1024*1024,
+                .attr = TVISOR_MMU_PAGE_ATTR_MEM | TVISOR_MMU_PAGE_ATTR_U,
+                .pbmt = TVISOR_MMU_PAGE_PBMT_NONE
+            },
+            .type = TVISOR_DEV_TYPE_DRAM
+        },
+        [1] = {
+            .type = TVISOR_DEV_TYPE_NONE
+        }
     };
+
     tvisor_printf("enter task_1_main...\n");
     vm_ctx.dev_list = dev_list;
     vm_ctx.dev_num = 1;
@@ -120,11 +133,12 @@ void task_1_main( void * arg ){
     write_csr(hgatp, vm_ctx.hgatp);
     __asm volatile("HFENCE.GVMA");
     __asm volatile("HFENCE.VVMA");
+    tvisor_vm_write32(0x80000000,0xa001a001);
     tvisor_vm_write32(0x80000000 + 256*1024*1024 - 4,0x12345678);
     tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000 + 256*1024*1024 - 4));
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     vTaskExitCritical();
-    // tvisor_vm_run(&vm_ctx);
+    tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");
