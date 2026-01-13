@@ -12,7 +12,8 @@ typedef enum {
     TVISOR_DEV_TYPE_PLIC,
     TVISOR_DEV_TYPE_CLINT,
     TVISOR_DEV_TYPE_UART_8250,
-    TVISOR_DEV_TYPE_DRAM
+    TVISOR_DEV_TYPE_UART_16550,
+    TVISOR_DEV_TYPE_MEM
 }tvisor_dev_type_t;
 
 typedef void* tvisor_dev_handler_t;
@@ -40,5 +41,17 @@ struct tvisor_dev_ctx_struct_t{
         tvisor_dev_plic_ctx_t      plic_ctx;
     };
 };
+
+typedef int (*tvisor_dev_init_t)(tvisor_dev_uart16550_ctx_t *ctx);
+
+typedef int (*tvisor_dev_write_register_t)(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset, uint64_t value, uint8_t size);
+typedef int (*tvisor_dev_read_register_t)(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset,uint64_t *value,uint8_t size);
+
+
+typedef struct tvisor_dev_struct_ops_t{
+    tvisor_dev_init_t           init;
+    tvisor_dev_write_register_t write_register;
+    tvisor_dev_read_register_t  read_register;
+}tvisor_dev_ops_t;
 
 #endif

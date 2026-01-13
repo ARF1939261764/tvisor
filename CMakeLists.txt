@@ -36,6 +36,7 @@ set(DIR_TARGET_SRC
     ./tvisor/freertos/heap_5.c
     ./tvisor/tvisor_printf.c
     ./tvisor/tvisor_mmu.c
+    ./tvisor/tvisor_guest_page_fault.c
     ./tvisor/tvisor_dev_uart16550.c
     ./tvisor/tvisor_dev_clint.c
     ./tvisor/tvisor_dev_mem.c

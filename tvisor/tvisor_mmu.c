@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "tvisor_mmu.h"
+#include "tvisor_dev.h"
 #include "tvisor_printf.h"
 #include "FreeRTOS.h"
 
@@ -34,21 +35,55 @@ int tvisor_mmu_init(tvisor_vm_ctx_ptr_t vm_ctx){
     return TVISOR_STATUS_OK;
 }
 
-static int tvisor_mmu_fill_pte(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_mem_region_t *region,uint64_t *pte_base,uint16_t vpn,uint8_t pte_level,uint8_t ptw_level,size_t page_size,size_t pte_size){
+static int tvisor_mmu_fill_pte(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_mem_region_t *region,uint64_t *pte_base,uint16_t vpn,uint8_t pte_level,uint8_t ptw_level,size_t page_size,size_t pte_size,uint32_t dev_idx){
     size_t malloc_size;
     size_t align_size;
     if(!(pte_base[vpn] & TVISOR_MMU_PAGE_ATTR_V)){
         malloc_size = ptw_level == (pte_level + 1) ? page_size : pte_size;
         align_size  = ptw_level == (pte_level + 1) ? page_size : 4096;
-        pte_base[vpn] = (((size_t)tvisor_mmu_align_malloc(malloc_size,align_size)) >> 12) << 10;
+        if((ptw_level == (pte_level + 1)) && (vm_ctx->dev_list[dev_idx].type != TVISOR_DEV_TYPE_MEM)){
+            pte_base[vpn] = dev_idx << 10;
+        }
+        else{
+            pte_base[vpn] = (((size_t)tvisor_mmu_align_malloc(malloc_size,align_size)) >> 12) << 10;
+        }
+        
         if(pte_base[vpn] == (size_t)NULL){
             return TVISOR_STATUS_ERROR;
         }
         pte_base[vpn] |= TVISOR_MMU_PAGE_ATTR_V;
     }
     if(ptw_level == (pte_level + 1)){
-        pte_base[vpn] |= region->attr;
-        pte_base[vpn] |= (size_t)(region->pbmt) << 61;
+        if(vm_ctx->dev_list[dev_idx].type == TVISOR_DEV_TYPE_MEM){
+            pte_base[vpn] |= region->attr;
+            pte_base[vpn] |= (size_t)(region->pbmt) << 61;
+        }
+        else{
+            pte_base[vpn] |= TVISOR_MMU_MMIO_PTE_ATTR;
+            pte_base[vpn] |= (size_t)(TVISOR_MMU_PAGE_PBMT_NC_MMIO) << 61;
+        }
+    }
+    return TVISOR_STATUS_OK;
+}
+
+int tvisor_mmu_get_leaf_pte(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,uint64_t *leaf_pte){
+    uint16_t vpn[3];
+    uint64_t *pte_base;
+    uint64_t pte;
+    vpn[2] = (start_addr >> 30) & 0x7FF;
+    vpn[1] = (start_addr >> 21) & 0x1FF;
+    vpn[0] = (start_addr >> 12) & 0x1FF;
+    pte_base = (uint64_t *)((vm_ctx->hgatp & TVISOR_MMU_MODE_SV39_ADDR_MASK) << 12);
+    for(int i=0;i<3;i++){
+        pte = pte_base[vpn[2-i]];
+        if(!(pte & TVISOR_MMU_PAGE_ATTR_V)){
+            return TVISOR_STATUS_ERROR;
+        }
+        if((pte & 0xE) != 0x00){
+            *leaf_pte = pte;
+            break;
+        }
+        pte_base = (uint64_t *)(((pte >> 10) << 12) & TVISOR_MMU_MODE_SV39_ADDR_MASK);
     }
     return TVISOR_STATUS_OK;
 }
@@ -128,7 +163,7 @@ int tvisor_mmu_map(tvisor_vm_ctx_ptr_t vm_ctx,size_t start_addr,size_t size){
         for(int i=0;i<ptw_level;i++){
             if(tvisor_mmu_fill_pte(vm_ctx,&(vm_ctx->dev_list[dev_idx].region),pte_base,vpn[2-i],
                 i,ptw_level,
-                page_size[i],pte_size[i]) != TVISOR_STATUS_OK
+                page_size[i],pte_size[i],dev_idx) != TVISOR_STATUS_OK
             ){
                 return TVISOR_STATUS_ERROR;
             }

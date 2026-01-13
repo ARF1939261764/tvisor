@@ -70,6 +70,8 @@ freertos_risc_v_exception_handler:
     beq a0,t0,freertos_risc_v_ecall_exception_handler
     li   t0,0xa
     beq a0,t0,freertos_risc_v_ecall_exception_handler
+    li   t0,0x17
+    beq a0,t0,freertos_risc_v_guest_page_fault_exception_handler
     j freertos_risc_v_other_exception_handler
 
 freertos_risc_v_stimer_interrupt_handler:
@@ -99,6 +101,11 @@ freertos_risc_v_ecall_exception_handler:
 
 freertos_risc_v_ecall_exception_switch_ctx_handler:
     call vTaskSwitchContext
+    portcontext_RESTORE_CONTEXT
+    sret
+
+freertos_risc_v_guest_page_fault_exception_handler:
+    call tvisor_guest_page_fault_exception_handler
     portcontext_RESTORE_CONTEXT
     sret
 

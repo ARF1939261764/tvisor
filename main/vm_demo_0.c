@@ -11,6 +11,12 @@ tvisor_dev_ctx_t dev_list[] = {
         },
     },
     [1] = {
+        .region = {
+            .start_addr = 0x10000000,
+            .size       = 4096,
+            .attr       = TVISOR_MMU_PAGE_ATTR_X | TVISOR_MMU_PAGE_ATTR_U,
+            .pbmt       = TVISOR_MMU_PAGE_PBMT_NC_MMIO
+        },
         .uart16550_ctx = {
             
         }
