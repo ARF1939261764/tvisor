@@ -104,7 +104,17 @@ tvisor_vm_ctx_t vm_ctx = {
     .entry_point_addr = (TaskFunction_t)0x80000000
 };
 
+int virt_dev_uart0_tx(tvisor_dev_uart16550_ctx_t *ctx,uint8_t data){
+    tvisor_printf("%c",data);
+    return 0;
+}
 
+int virt_puts(char *str){
+    while(*str++){
+        tvisor_vm_write32(0x10000000,str[-1]);
+    }
+    return 0;
+}
 
 void task_1_main( void * arg ){
     int i=0;// {}
@@ -121,6 +131,11 @@ void task_1_main( void * arg ){
         },
         [1] = {
             .type = TVISOR_DEV_TYPE_UART_16550,
+            .ctx = {
+                .uart16550_ctx = {
+                    .func_tx = virt_dev_uart0_tx
+                }
+            },
             .region = {
                 .start_addr = 0x10000000,
                 .size = 4096,
@@ -148,7 +163,7 @@ void task_1_main( void * arg ){
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     tvisor_mmu_get_leaf_pte(&vm_ctx,dev_list[1].region.start_addr,&pte);
     tvisor_printf("uart pte = %016lx\r\n",pte);
-    tvisor_vm_write32(dev_list[1].region.start_addr,0x12345678);
+    virt_puts("printf from virtual machine 0\r\n");
     vTaskExitCritical();
     tvisor_vm_run(&vm_ctx);
     while(1){

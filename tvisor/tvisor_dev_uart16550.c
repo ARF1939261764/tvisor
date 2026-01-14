@@ -5,7 +5,15 @@
 #include <stdint.h>
 
 static int tvisor_dev_uart16550_write_register(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset, uint64_t value, uint8_t size){
-
+    switch(addr_offset){
+        case 0x00:{
+            ctx->func_tx(ctx,(uint8_t)value);
+            break;
+        }
+        default:{
+            break;
+        }
+    }
     return TVISOR_STATUS_OK;
 }
 
