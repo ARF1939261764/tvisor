@@ -53,6 +53,8 @@
 #define portSTACK_PVPARAMETERS_IDX            (portSTACK_X10_IDX)
 #define portSTACK_PORTTASK_RETURN_ADDRESS_IDX (portSTACK_X1_IDX)
 
+#ifdef __ASSEMBLER__
+
 .macro portcontext_SAVE_CONTEXT
     addi sp, sp, -portSTACK_FRAME_SIZE
 
@@ -97,6 +99,12 @@
 .endm
 
 .macro portcontext_RESTORE_CONTEXT
+    csrr t0,hstatus
+    andi t0,t0,1 << 7
+    beq t0,x0,1f
+    load_x t0, pxCurrentTCB
+    csrw sscratch,t0
+1:
     load_x t0, pxCurrentTCB /* Load pxCurrentTCB. */
     load_x sp, 0 ( t0 )     /* Read sp from first TCB member. */
 
@@ -155,7 +163,7 @@
     csrr a1, sepc
     addi a1, a1, 4          /* Synchronous so update exception return address to the instruction after the instruction that generated the exception. */
     store_x a1,  portSTACK_PXCODE_IDX * portWORD_SIZE(sp)   /* Save updated exception return address. */
-    add t0,x0,sp
+    add ra,x0,sp
     la sp, __freertos_irq_stack_top /* Switch to ISR stack. */
 .endm
 
@@ -176,5 +184,7 @@
     //return address
     store_x ra,  portSTACK_PXCODE_IDX * portWORD_SIZE(sp)   /* Save updated exception return address. */
 .endm
+
+#endif
 
 #endif

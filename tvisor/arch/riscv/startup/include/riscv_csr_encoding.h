@@ -3,6 +3,8 @@
 #ifndef RISCV_CSR_ENCODING_H
 #define RISCV_CSR_ENCODING_H
 
+#define HSTATUS_SPV         (1UL << 7)
+
 #define MSTATUS_UIE         0x00000001
 #define MSTATUS_SIE         0x00000002
 #define MSTATUS_HIE         0x00000004
@@ -1471,3 +1473,23 @@ DECLARE_CAUSE("store page fault", CAUSE_STORE_PAGE_FAULT)
 #endif
 
 #include "scr1_specific.h"
+
+#define RISCV_INST_DECODE_MASK1       (~((0x1FUL << 20) | (0x1FUL << 15) | (0x1FUL <<  7)))
+#define RISCV_INST_DECODE_MASK0       (~((0x1FUL << 15) | (0x1FUL <<  7)))
+#define RISCV_INST_DECODE_HLV_B       ((0x30UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_BU      ((0x30UL << 25) | (0x01UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_H       ((0x32UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_HU      ((0x32UL << 25) | (0x01UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_W       ((0x34UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLVX_HU     ((0x32UL << 25) | (0x03UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLVX_WU     ((0x34UL << 25) | (0x03UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HSV_B       ((0x31UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HSV_H       ((0x33UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HSV_W       ((0x35UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_WU      ((0x34UL << 25) | (0x01UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HLV_D       ((0x36UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_HSV_D       ((0x37UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+
+#define RISCV_INST_RS1(inst)          (((inst) >> 15) & 0x1F)
+#define RISCV_INST_RS2(inst)          (((inst) >> 20) & 0x1F)
+#define RISCV_INST_RD(inst)           (((inst) >>  7) & 0x1F)

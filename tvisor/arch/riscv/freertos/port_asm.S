@@ -105,6 +105,13 @@ freertos_risc_v_ecall_exception_switch_ctx_handler:
     sret
 
 freertos_risc_v_guest_page_fault_exception_handler:
+    csrr a0,sstatus
+    csrr a1,sepc
+    csrr a2,stval
+    csrr a3,hstatus
+    csrr a4,htval
+    csrr a5,htinst
+    add  a6,ra,x0
     call tvisor_guest_page_fault_exception_handler
     portcontext_RESTORE_CONTEXT
     sret

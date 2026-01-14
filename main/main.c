@@ -134,6 +134,7 @@ void task_1_main( void * arg ){
     vm_ctx.dev_list = dev_list;
     vm_ctx.dev_num = 2;
     vTaskEnterCritical();
+    write_csr(sscratch,&vm_ctx);
     tvisor_vm_create(&vm_ctx);
     tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,256*1024*1024);
     tvisor_mmu_map(&vm_ctx,dev_list[1].region.start_addr,dev_list[1].region.size);

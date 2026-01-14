@@ -42,6 +42,7 @@ set(DIR_TARGET_SRC
     ./tvisor/tvisor_dev_mem.c
     ./tvisor/tvisor_dev_stimer.c
     ./tvisor/tvisor_dev_plic.c
+    ./tvisor/tvisor_dev.c
     ./tvisor/tvisor.c
     ./main/system.c
     ./main/main.c

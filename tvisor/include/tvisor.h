@@ -55,12 +55,12 @@ typedef uint8_t tvisor_vmid_t;
 
 
 typedef struct{
+    TaskHandle_t tcb;
     TaskFunction_t entry_point_addr;
     char *name;
     size_t hgatp;
     tvisor_dev_ctx_t *dev_list;
     uint32_t dev_num;
-    TaskHandle_t tcb;
     tvisor_vmid_t vmid;
     UBaseType_t uxPriority;
 }tvisor_vm_ctx_t;

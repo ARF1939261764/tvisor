@@ -39,7 +39,7 @@ struct tvisor_dev_ctx_struct_t{
     union{
         tvisor_dev_uart16550_ctx_t uart16550_ctx;
         tvisor_dev_plic_ctx_t      plic_ctx;
-    };
+    }ctx;
 };
 
 typedef int (*tvisor_dev_init_t)(tvisor_dev_uart16550_ctx_t *ctx);
@@ -53,5 +53,7 @@ typedef struct tvisor_dev_struct_ops_t{
     tvisor_dev_write_register_t write_register;
     tvisor_dev_read_register_t  read_register;
 }tvisor_dev_ops_t;
+
+extern const tvisor_dev_ops_t *tvisor_dev_ops_list[];
 
 #endif
