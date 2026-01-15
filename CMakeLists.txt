@@ -6,7 +6,11 @@ project(tvisor
   VERSION 0.1.0
 )
 
+# set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose Makefile" FORCE)
+
+
 set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_AR riscv64-unknown-linux-gnu-ar)
 set(CMAKE_C_COMPILER riscv64-unknown-linux-gnu-gcc)
 set(CMAKE_OBJCOPY riscv64-unknown-linux-gnu-objcopy)
 set(CMAKE_OBJDUMP riscv64-unknown-linux-gnu-objdump)
@@ -21,6 +25,50 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
  
 endif()
 
+function(add_bin_target target)
+    add_custom_command(
+        TARGET ${target}
+        POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${target}> ${CMAKE_CURRENT_BINARY_DIR}/${target}.bin
+        COMMENT "✅ Generating binary file: ${target}.bin"
+        VERBATIM  # 关键：防止路径含空格/特殊字符出错，必加
+    )
+endfunction()
+
+function(add_asm_target target)
+    add_custom_command(
+        TARGET ${target}
+        POST_BUILD
+        COMMAND ${CMAKE_OBJDUMP} -S -C -D $<TARGET_FILE:${target}> > ${CMAKE_CURRENT_BINARY_DIR}/${target}.S
+        COMMENT "✅ Generating assembly file: ${target}.S"
+        VERBATIM  # 关键：防止路径含空格/特殊字符出错，必加
+    )
+endfunction()
+
+add_library(ProjectCommonConfig INTERFACE)
+
+target_include_directories(ProjectCommonConfig INTERFACE
+    ${PROJECT_SOURCE_DIR}/main/include
+    ${PROJECT_SOURCE_DIR}/tvisor/include
+    ${PROJECT_SOURCE_DIR}/tvisor/freertos/include
+    ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/freertos/include
+    ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/include
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include-fixed
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/../../../../riscv64-unknown-linux-gnu/include
+    /home/tangf/04_softs/riscv-tools/bin/../sysroot/usr/include
+)
+
+target_link_options(ProjectCommonConfig INTERFACE
+  -static -pie -Wl,--no-warn-rwx-segments -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles 
+  -lc -lgcc  -march=rv64gch -mabi=lp64d
+)
+
+target_compile_options(ProjectCommonConfig INTERFACE
+   -O0 -g3 -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las -static -std=gnu99 
+                                        -fno-common -fno-builtin-printf -march=rv64gch -mabi=lp64d  -mcmodel=medany
+)
+ 
 # 收集源文件（推荐手动列出，避免遗漏或误包含）
 set(DIR_TARGET_SRC
     ./tvisor/arch/riscv/freertos/port.c
@@ -44,42 +92,42 @@ set(DIR_TARGET_SRC
     ./tvisor/tvisor_dev_plic.c
     ./tvisor/tvisor_dev.c
     ./tvisor/tvisor.c
-    ./main/system.c
-    ./main/main.c
 )
 
-# 构建可执行文件
-add_executable(tvisor
+add_library(tvisor STATIC 
   ${DIR_TARGET_SRC}
 )
 
-target_include_directories(tvisor PUBLIC 
-    ${PROJECT_SOURCE_DIR}/main/include
-    ${PROJECT_SOURCE_DIR}/tvisor/include
-    ${PROJECT_SOURCE_DIR}/tvisor/freertos/include
-    ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/freertos/include
-    ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/include
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include-fixed
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/../../../../riscv64-unknown-linux-gnu/include
-    /home/tangf/04_softs/riscv-tools/bin/../sysroot/usr/include
+# 构建可执行文件
+add_executable(tvisor_case0_smoke
+  ./demo/tvisor_case0_smoke/system.c
+  ./demo/tvisor_case0_smoke/main.c
 )
 
-target_compile_options(tvisor PRIVATE   -O0 -g3 -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las -static -std=gnu99 
-                                        -fno-common -fno-builtin-printf -march=rv64gch -mabi=lp64d  -mcmodel=medany)
-
-target_link_options(tvisor PRIVATE -static -pie -Wl,--no-warn-rwx-segments -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles  -lc -lgcc -march=rv64gch -mabi=lp64d)
-
-add_custom_command(
-    TARGET ${CMAKE_PROJECT_NAME}
-    POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_PROJECT_NAME}.bin
-    COMMENT "Generating binary file: ${CMAKE_PROJECT_NAME}.bin"
+# 构建可执行文件
+add_executable(tvisor_case1_freertos
+  ./demo/tvisor_case1_freertos/system.c
+  ./demo/tvisor_case1_freertos/main.c
 )
 
-add_custom_command(
-    TARGET ${CMAKE_PROJECT_NAME}
-    POST_BUILD
-    COMMAND ${CMAKE_OBJDUMP} -S -C -D $<TARGET_FILE:${CMAKE_PROJECT_NAME}> > ${CMAKE_PROJECT_NAME}.S
-    COMMENT "Generating dump file: ${CMAKE_PROJECT_NAME}.S"
-)
+
+get_property(ALL_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+
+# 4. 循环遍历，给所有target生成bin文件
+foreach(target IN LISTS ALL_TARGETS)
+  
+  get_target_property(target_type ${target} TYPE)
+
+  if(target_type STREQUAL "EXECUTABLE")
+    add_bin_target(${target})
+    add_asm_target(${target})
+  endif()
+
+  if(target_type STREQUAL "STATIC_LIBRARY")
+    target_link_libraries(${target} PRIVATE ProjectCommonConfig)
+  endif()
+  if(target_type STREQUAL "EXECUTABLE")
+    target_link_libraries(${target} PRIVATE ProjectCommonConfig tvisor)
+  endif()
+  
+endforeach()

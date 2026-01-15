@@ -1,5 +1,7 @@
 .PHONY : default clean  cleanall run debug init
 
+TESTNAME := case0_smoke
+
 QEMU := ./qemu/qemu-10.2.0-rc1/build/qemu-system-riscv64 
 
 default:
@@ -7,7 +9,7 @@ default:
 	@mkdir -p ./build/
 	@+make -C ./build/ -s
 	@echo "build opensbi..."
-	@+make -C ./opensbi/opensbi_v1p7/ PLATFORM=generic CROSS_COMPILE=riscv64-unknown-linux-gnu- FW_PAYLOAD_PATH=../../build/tvisor.bin all -s
+	@+make -C ./opensbi/opensbi_v1p7/ PLATFORM=generic CROSS_COMPILE=riscv64-unknown-linux-gnu- FW_PAYLOAD_PATH=../../build/tvisor_case0_smoke.bin all -s
 
 clean:
 	make -C ./build/ -s clean
