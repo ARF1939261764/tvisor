@@ -105,9 +105,15 @@ add_executable(tvisor_case0_smoke
 )
 
 # 构建可执行文件
-add_executable(tvisor_case1_freertos
-  ./demo/tvisor_case1_freertos/system.c
-  ./demo/tvisor_case1_freertos/main.c
+add_executable(tvisor_case1_bare
+  ./demo/tvisor_case1_bare/system.c
+  ./demo/tvisor_case1_bare/main.c
+)
+
+# 构建可执行文件
+add_executable(tvisor_case2_freertos
+  ./demo/tvisor_case2_freertos/system.c
+  ./demo/tvisor_case2_freertos/main.c
 )
 
 
