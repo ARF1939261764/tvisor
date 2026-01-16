@@ -170,6 +170,11 @@ void task_1_main( void * arg ){
     virt_puts("printf from virtual machine 0\r\n");
     vTaskExitCritical();
     tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
+    for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
+        if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
+            while(1);
+        }
+    }
     tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());

@@ -73,6 +73,7 @@ extern int tvisor_vm_run(tvisor_vm_ctx_ptr_t vm_ctx);
 extern int tvisor_dev_create(tvisor_vm_ctx_ptr_t vm_ctx,tvisor_dev_ctx_ptr_t dev_ctx);
 extern uint32_t tvisor_vm_read32(size_t addr);
 extern void tvisor_vm_write32(size_t addr,uint32_t data);
+extern uint8_t tvisor_vm_read8(size_t addr);
 extern void tvisor_vm_memcpy(void * destination, const void * source, size_t num);
 
 #endif
