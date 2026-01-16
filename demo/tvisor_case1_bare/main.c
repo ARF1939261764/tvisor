@@ -14,6 +14,10 @@
 #include "csr.h"
 #include "tvisor.h"
 #include "tvisor_mmu.h"
+
+extern unsigned char __firmware_build_smoke_main_bin[];
+extern unsigned int __firmware_build_smoke_main_bin_len;
+
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
 // TIMER扩展功能ID
@@ -165,6 +169,7 @@ void task_1_main( void * arg ){
     tvisor_printf("uart pte = %016lx\r\n",pte);
     virt_puts("printf from virtual machine 0\r\n");
     vTaskExitCritical();
+    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
     tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());

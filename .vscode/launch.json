@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name":"tvisor",
+            "name":"tvisor_case1_bare",
             "type":"cppdbg",
             "request": "launch",
             "miDebuggerServerAddress": "127.0.0.1:1234",
             "miDebuggerPath": "/home/tangf/04_softs/riscv-tools/bin/riscv64-unknown-elf-gdb",
-            "program": "${workspaceRoot}/build/tvisor",
+            "program": "${workspaceRoot}/build/tvisor_case1_bare",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",

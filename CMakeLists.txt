@@ -107,6 +107,7 @@ add_executable(tvisor_case0_smoke
 # 构建可执行文件
 add_executable(tvisor_case1_bare
   ./demo/tvisor_case1_bare/system.c
+  ./demo/tvisor_case1_bare/guest.c
   ./demo/tvisor_case1_bare/main.c
 )
 

@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "tvisor.h"
 #include "tvisor_config.h"
+#include <stddef.h>
 #include <stdint.h>
 #include "tvisor_printf.h"
 #include "riscv_csr_encoding.h"
@@ -95,7 +96,13 @@ int tvisor_vm_run(tvisor_vm_ctx_ptr_t vm_ctx){
 
 uint32_t tvisor_vm_read32(size_t addr){
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
-    __asm volatile ("hlv.w a0,0(a0)");
+    __asm volatile ("hlv.wu a0,0(a0)");
+    return a0;
+}
+
+uint8_t tvisor_vm_read8(size_t addr){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+    __asm volatile ("hlv.bu a0,0(a0)");
     return a0;
 }
 
@@ -103,6 +110,19 @@ void tvisor_vm_write32(size_t addr,uint32_t data){
 	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
 	register uintptr_t a1 asm ("a1") = (uintptr_t)(data);
     __asm volatile ("hsv.w a1,0(a0)");
+}
+
+void tvisor_vm_write8(size_t addr,uint32_t data){
+	register uintptr_t a0 asm ("a0") = (uintptr_t)(addr);
+	register uintptr_t a1 asm ("a1") = (uintptr_t)(data);
+    __asm volatile ("hsv.b a1,0(a0)");
+}
+
+
+void tvisor_vm_memcpy(void * destination, const void * source, size_t num){
+    for(size_t i = 0;i < num ;i++){
+        tvisor_vm_write8((size_t)destination + i,((uint8_t *)source)[i]);
+    }
 }
 
 int tvisor_dev_create_uart16550(){
