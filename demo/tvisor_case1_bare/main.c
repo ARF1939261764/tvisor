@@ -148,12 +148,11 @@ void task_1_main( void * arg ){
             },
         }
     };
-
+    uxTaskCurrentHypervisorCtxSet(&vm_ctx);
     tvisor_printf("enter task_1_main...\n");
     vm_ctx.dev_list = dev_list;
     vm_ctx.dev_num = 2;
     vTaskEnterCritical();
-    write_csr(sscratch,&vm_ctx);
     tvisor_vm_create(&vm_ctx);
     tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,256*1024*1024);
     tvisor_mmu_map(&vm_ctx,dev_list[1].region.start_addr,dev_list[1].region.size);
@@ -167,15 +166,16 @@ void task_1_main( void * arg ){
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     tvisor_mmu_get_leaf_pte(&vm_ctx,dev_list[1].region.start_addr,&pte);
     tvisor_printf("uart pte = %016lx\r\n",pte);
-    virt_puts("printf from virtual machine 0\r\n");
+    // virt_puts("printf from virtual machine 0\r\n");
+    tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
     vTaskExitCritical();
-    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
-    for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
-        if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
-            while(1);
-        }
-    }
-    tvisor_vm_run(&vm_ctx);
+    // tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
+    // for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
+    //     if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
+    //         while(1);
+    //     }
+    // }
+    // tvisor_vm_run(&vm_ctx);
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");

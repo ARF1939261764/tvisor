@@ -40,7 +40,7 @@
  */
 pxPortInitialiseStack_asm:
     //stack
-    addi a0,a0,-portSTACK_FRAME_SIZE
+    addi a0,a0,-portCONTEXT_FRAME_SIZE
     //sstatus
     li t0,portSSTATUS_DEFAULT_VALUE
     or t0, t0, a3
@@ -48,13 +48,16 @@ pxPortInitialiseStack_asm:
     li t1,portHSTATUS_DEFAULT_VALUE
     or t1, t1, a4
     //save context
+    store_x gp,portSTACK_X3_IDX                   * portWORD_SIZE(a0)//sstatus
     store_x a5,portSTACK_HGATP_IDX                   * portWORD_SIZE(a0)//sstatus
     store_x t0,portSTACK_SSTATUS_IDX                 * portWORD_SIZE(a0)//sstatus
     store_x t1,portSTACK_HSTATUS_IDX                 * portWORD_SIZE(a0)//hstatus
     store_x x0,portSTACK_XCRITICALNESTING_IDX        * portWORD_SIZE(a0)//xCriticalNesting
     store_x a2,portSTACK_PVPARAMETERS_IDX            * portWORD_SIZE(a0)//pvParameters
     store_x a1,portSTACK_PXCODE_IDX                  * portWORD_SIZE(a0)//task start address
+    store_x a0,portSTACK_X2_IDX                      * portWORD_SIZE(a0)//task start address
     //ret
+    addi a0,a0,portCONTEXT_FRAME_SIZE
     ret
 
 xPortStartFirstTask_asm:
@@ -111,7 +114,7 @@ freertos_risc_v_guest_page_fault_exception_handler:
     csrr a3,hstatus
     csrr a4,htval
     csrr a5,htinst
-    add  a6,ra,x0
+    csrr a6,sscratch
     call tvisor_guest_page_fault_exception_handler
     portcontext_RESTORE_CONTEXT
     sret

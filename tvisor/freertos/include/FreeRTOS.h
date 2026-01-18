@@ -32,6 +32,7 @@
 /*
  * Include the generic headers required for the FreeRTOS port being used.
  */
+#include "port.h"
 #include <stddef.h>
 
 /*
@@ -3194,6 +3195,8 @@ typedef struct xSTATIC_TCB
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iDummy22;
     #endif
+    riscv_prv_mode_t iDummy23;
+    riscv_hypervisor_t iDummy24;
 } StaticTask_t;
 
 /*

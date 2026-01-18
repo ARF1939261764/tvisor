@@ -3772,10 +3772,12 @@ typedef struct{
     riscv_prv_mode_t prv_mode;
     size_t hgatp;
     void *args;
+    void* vm_ctx;
 }task_defualt_args_t;
 
 extern riscv_prv_mode_t uxTaskCurrentPrvModeGet(void);
-
+extern riscv_hypervisor_t uxTaskCurrentHypervisorCtxGet(void);
+extern riscv_hypervisor_t uxTaskCurrentHypervisorCtxSet(void* ctx);
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     }

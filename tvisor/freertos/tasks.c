@@ -435,6 +435,7 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
         int iTaskErrno;
     #endif
     riscv_prv_mode_t prv_mode;
+    riscv_hypervisor_t hypervisor_ctx;
 } tskTCB;
 
 /* The old tskTCB name is maintained above then typedefed to the new TCB_t name
@@ -2009,9 +2010,11 @@ static void prvInitialiseNewTask( TaskFunction_t pxTaskCode,
          * change the created task's priority, delete the created task, etc.*/
          if(pvParameters != NULL){
             pxNewTCB->prv_mode = ((task_defualt_args_t *)pvParameters)->prv_mode;
+            pxNewTCB->hypervisor_ctx.ctx = ((task_defualt_args_t *)pvParameters)->vm_ctx;
          }
          else{
             pxNewTCB->prv_mode = RISCV_PRV_U_MODE;
+            pxNewTCB->hypervisor_ctx.ctx = NULL;
          }
          
         *pxCreatedTask = ( TaskHandle_t ) pxNewTCB;
@@ -8706,4 +8709,13 @@ void vTaskResetState( void )
 
 riscv_prv_mode_t uxTaskCurrentPrvModeGet(void){
     return pxCurrentTCB->prv_mode;
+}
+
+riscv_hypervisor_t uxTaskCurrentHypervisorCtxGet(void){
+    return pxCurrentTCB->hypervisor_ctx;
+}
+
+riscv_hypervisor_t uxTaskCurrentHypervisorCtxSet(void* ctx){
+    pxCurrentTCB->hypervisor_ctx.ctx = ctx;
+    return pxCurrentTCB->hypervisor_ctx;
 }

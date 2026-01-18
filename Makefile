@@ -7,7 +7,7 @@ QEMU := ./qemu/qemu-10.2.0-rc1/build/qemu-system-riscv64
 default:
 	@echo "build tvisor..."
 	@mkdir -p ./build/
-	@+make -C ./build/ -s
+	@+make -C ./build/ -s -j 16
 	@echo "build opensbi..."
 	@+make -C ./opensbi/opensbi_v1p7/ PLATFORM=generic CROSS_COMPILE=riscv64-unknown-linux-gnu- FW_PAYLOAD_PATH=../../build/${TESTNAME}.bin all -s
 

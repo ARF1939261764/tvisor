@@ -14,39 +14,43 @@
 #define portHSTATUS_DEFAULT_VALUE              (0x0000000200000000UL)
 
 #define portWORD_SIZE         (8)
-#define portSTACK_FRAME_SIZE  (36*portWORD_SIZE)
+#define portCONTEXT_FRAME_SIZE  (42*portWORD_SIZE)
 
-#define portSTACK_HGATP_IDX                   (32)
-#define portSTACK_HSTATUS_IDX                 (31)
-#define portSTACK_SSTATUS_IDX                 (30)
-#define portSTACK_XCRITICALNESTING_IDX        (29)
-#define portSTACK_X31_IDX                     (28)
-#define portSTACK_X30_IDX                     (27)
-#define portSTACK_X29_IDX                     (26)
-#define portSTACK_X28_IDX                     (25)
-#define portSTACK_X27_IDX                     (24)
-#define portSTACK_X26_IDX                     (23)
-#define portSTACK_X25_IDX                     (22)
-#define portSTACK_X24_IDX                     (21)
-#define portSTACK_X23_IDX                     (20)
-#define portSTACK_X22_IDX                     (19)
-#define portSTACK_X21_IDX                     (18)
-#define portSTACK_X20_IDX                     (17)
-#define portSTACK_X19_IDX                     (16)
-#define portSTACK_X18_IDX                     (15)
-#define portSTACK_X17_IDX                     (14)
-#define portSTACK_X16_IDX                     (13)
-#define portSTACK_X15_IDX                     (12)
-#define portSTACK_X14_IDX                     (11)
-#define portSTACK_X13_IDX                     (10)
-#define portSTACK_X12_IDX                     ( 9)
-#define portSTACK_X11_IDX                     ( 8)
-#define portSTACK_X10_IDX                     ( 7)
-#define portSTACK_X9_IDX                      ( 6)
-#define portSTACK_X8_IDX                      ( 5)
-#define portSTACK_X7_IDX                      ( 4)
-#define portSTACK_X6_IDX                      ( 3)
-#define portSTACK_X5_IDX                      ( 2)
+#define portSTACK_CURRENT_TCB_IDX             (37)
+#define portSTACK_HGATP_IDX                   (36)
+#define portSTACK_HSTATUS_IDX                 (35)
+#define portSTACK_SSTATUS_IDX                 (33)
+#define portSTACK_XCRITICALNESTING_IDX        (32)
+#define portSTACK_X31_IDX                     (31)
+#define portSTACK_X30_IDX                     (30)
+#define portSTACK_X29_IDX                     (29)
+#define portSTACK_X28_IDX                     (28)
+#define portSTACK_X27_IDX                     (27)
+#define portSTACK_X26_IDX                     (26)
+#define portSTACK_X25_IDX                     (25)
+#define portSTACK_X24_IDX                     (24)
+#define portSTACK_X23_IDX                     (23)
+#define portSTACK_X22_IDX                     (22)
+#define portSTACK_X21_IDX                     (21)
+#define portSTACK_X20_IDX                     (20)
+#define portSTACK_X19_IDX                     (19)
+#define portSTACK_X18_IDX                     (18)
+#define portSTACK_X17_IDX                     (17)
+#define portSTACK_X16_IDX                     (16)
+#define portSTACK_X15_IDX                     (15)
+#define portSTACK_X14_IDX                     (14)
+#define portSTACK_X13_IDX                     (13)
+#define portSTACK_X12_IDX                     (12)
+#define portSTACK_X11_IDX                     (11)
+#define portSTACK_X10_IDX                     (10)
+#define portSTACK_X9_IDX                      ( 9)
+#define portSTACK_X8_IDX                      ( 8)
+#define portSTACK_X7_IDX                      ( 7)
+#define portSTACK_X6_IDX                      ( 6)
+#define portSTACK_X5_IDX                      ( 5)
+#define portSTACK_X4_IDX                      ( 4)
+#define portSTACK_X3_IDX                      ( 3)
+#define portSTACK_X2_IDX                      ( 2)
 #define portSTACK_X1_IDX                      ( 1)
 #define portSTACK_PXCODE_IDX                  ( 0)
 
@@ -56,9 +60,11 @@
 #ifdef __ASSEMBLER__
 
 .macro portcontext_SAVE_CONTEXT
-    addi sp, sp, -portSTACK_FRAME_SIZE
+    csrrw sp,sscratch,sp
 
     store_x  x1,  portSTACK_X1_IDX * portWORD_SIZE(sp)
+    store_x  x3,  portSTACK_X3_IDX * portWORD_SIZE(sp)
+    store_x  x4,  portSTACK_X4_IDX * portWORD_SIZE(sp)
     store_x  x5,  portSTACK_X5_IDX * portWORD_SIZE(sp)
     store_x  x6,  portSTACK_X6_IDX * portWORD_SIZE(sp)
     store_x  x7,  portSTACK_X7_IDX * portWORD_SIZE(sp)
@@ -86,30 +92,36 @@
     store_x x29, portSTACK_X29_IDX * portWORD_SIZE(sp)
     store_x x30, portSTACK_X30_IDX * portWORD_SIZE(sp)
     store_x x31, portSTACK_X31_IDX * portWORD_SIZE(sp)
-    
+
+    csrrw t0,sscratch,sp
+    store_x t0, portSTACK_X2_IDX * portWORD_SIZE( sp )
     csrr t0, sstatus
     store_x t0, portSTACK_SSTATUS_IDX * portWORD_SIZE( sp )
     csrr t0, hstatus
     store_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
     csrr t0, hgatp
     store_x t0, portSTACK_HGATP_IDX   * portWORD_SIZE( sp )
-    
-    load_x t0, pxCurrentTCB          /* Load pxCurrentTCB. */
-    store_x sp, 0 ( t0 )             /* Write sp to first TCB member. */
 .endm
 
 .macro portcontext_RESTORE_CONTEXT
-    csrr t0,hstatus
-    andi t0,t0,1 << 7
-    beq t0,x0,1f
-    load_x t0, pxCurrentTCB
-    csrw sscratch,t0
-1:
-    load_x t0, pxCurrentTCB /* Load pxCurrentTCB. */
-    load_x sp, 0 ( t0 )     /* Read sp from first TCB member. */
 
+    load_x sp,pxCurrentTCB
+    load_x sp,0(sp)
+    addi sp,sp,-portCONTEXT_FRAME_SIZE
+    csrw sscratch,sp
+
+    load_x t0,portSTACK_PXCODE_IDX * portWORD_SIZE(sp)
+    csrw sepc,t0
+    load_x t0, portSTACK_HGATP_IDX * portWORD_SIZE( sp )
+    csrw hgatp, t0
+    load_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
+    csrw hstatus, t0
+    load_x t0, portSTACK_SSTATUS_IDX * portWORD_SIZE( sp )
+    csrw sstatus, t0  
 
     load_x  x1,  portSTACK_X1_IDX * portWORD_SIZE(sp)
+    load_x  x3,  portSTACK_X3_IDX * portWORD_SIZE(sp)
+    load_x  x4,  portSTACK_X4_IDX * portWORD_SIZE(sp)
     load_x  x5,  portSTACK_X5_IDX * portWORD_SIZE(sp)
     load_x  x6,  portSTACK_X6_IDX * portWORD_SIZE(sp)
     load_x  x7,  portSTACK_X7_IDX * portWORD_SIZE(sp)
@@ -137,22 +149,7 @@
     load_x x29, portSTACK_X29_IDX * portWORD_SIZE(sp)
     load_x x30, portSTACK_X30_IDX * portWORD_SIZE(sp)
     load_x x31, portSTACK_X31_IDX * portWORD_SIZE(sp)
-
-
-    load_x t0,portSTACK_PXCODE_IDX * portWORD_SIZE(sp)
-    csrw sepc,t0
-
-
-    load_x t0, portSTACK_HGATP_IDX * portWORD_SIZE( sp )
-    csrw hgatp, t0
-    
-    load_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
-    csrw hstatus, t0  
-
-    load_x t0, portSTACK_SSTATUS_IDX * portWORD_SIZE( sp )
-    csrw sstatus, t0  
-
-    addi sp, sp, portSTACK_FRAME_SIZE
+    load_x  sp,  portSTACK_X2_IDX * portWORD_SIZE(sp)
 
 .endm
 
@@ -163,7 +160,6 @@
     csrr a1, sepc
     addi a1, a1, 4          /* Synchronous so update exception return address to the instruction after the instruction that generated the exception. */
     store_x a1,  portSTACK_PXCODE_IDX * portWORD_SIZE(sp)   /* Save updated exception return address. */
-    add ra,x0,sp
     la sp, __freertos_irq_stack_top /* Switch to ISR stack. */
 .endm
 

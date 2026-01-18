@@ -1,3 +1,4 @@
+#include "port.h"
 #include "stdint.h"
 #include "tvisor.h"
 #include "riscv_csr_encoding.h"
@@ -6,6 +7,7 @@
 #include "tvisor_dev_uart16550.h"
 #include "tvisor_mmu.h"
 #include <stdint.h>
+#include "task.h"
 
 const uint8_t regs_stack_idx_map[] = {
     [ 0] = 0,
@@ -53,10 +55,12 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
     uint8_t rd;
     uint8_t dev_idx;
     tvisor_vm_ctx_ptr_t ctx;
-    ctx = (tvisor_vm_ctx_ptr_t)read_csr(sscratch);
+    riscv_hypervisor_t hypervisor_ctx;
+    hypervisor_ctx = uxTaskCurrentHypervisorCtxGet();
+    ctx = hypervisor_ctx.ctx;
     if(hstatus & HSTATUS_SPV){
         //VS/VU Mode
-
+        *(volatile uint32_t *)0x10000000 = 'a';
     }
     else{
         fault_pc = sepc;

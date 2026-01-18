@@ -9,6 +9,6 @@ void uart_initial(uart_t *periph,uint32_t baund){
 }
 
 void uart_putc(uart_t *periph,char ch){
-  while(periph->tx_fifo & (1<<31));
+  // while(periph->tx_fifo & (1<<31));
   periph->tx_fifo = ch;
 }

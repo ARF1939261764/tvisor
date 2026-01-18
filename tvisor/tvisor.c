@@ -53,6 +53,7 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     tvisor_vm_ctx_ptr_t  new_vm_ctx;
     task_defualt_args_t vm_task_args = {
         .prv_mode = RISCV_PRV_VS_MODE,
+        .vm_ctx   = vm_ctx,
         .args     = NULL
     };
     //malloc vmid

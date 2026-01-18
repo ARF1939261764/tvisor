@@ -5,7 +5,7 @@ TESTNAME = smoke
 # 可执行文件名
 TARGET = main
 
-ARCH = gc
+ARCH = g
 ABI = lp64d
 
 # gcc类型
