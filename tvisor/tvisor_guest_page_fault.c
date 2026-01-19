@@ -60,7 +60,12 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
     ctx = hypervisor_ctx.ctx;
     if(hstatus & HSTATUS_SPV){
         //VS/VU Mode
-        *(volatile uint32_t *)0x10000000 = 'a';
+        fault_pc = sepc;
+        fault_inst = tvisor_vm_read32(fault_pc);
+        rs1 = RISCV_INST_RS1(fault_inst);
+        rs2 = RISCV_INST_RS2(fault_inst);
+        rd  = RISCV_INST_RD(fault_inst);
+        *(volatile uint32_t *)0x10000000 = stack_ctx[regs_stack_idx_map[14]];
     }
     else{
         fault_pc = sepc;

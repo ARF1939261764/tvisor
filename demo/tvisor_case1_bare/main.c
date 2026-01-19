@@ -166,7 +166,7 @@ void task_1_main( void * arg ){
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     tvisor_mmu_get_leaf_pte(&vm_ctx,dev_list[1].region.start_addr,&pte);
     tvisor_printf("uart pte = %016lx\r\n",pte);
-    // virt_puts("printf from virtual machine 0\r\n");
+    virt_puts("printf from virtual machine 0\r\n");
     tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
     vTaskExitCritical();
     tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
