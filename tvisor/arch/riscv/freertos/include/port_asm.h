@@ -156,9 +156,11 @@
 
 .macro portcontext_SAVE_CONTEXT_EXCEPTION
     portcontext_SAVE_CONTEXT
-    csrr a0, scause
+    csrr a0, hstatus
     csrr a1, sepc
-    addi a1, a1, 4          /* Synchronous so update exception return address to the instruction after the instruction that generated the exception. */
+    call xGetSepcIncr
+    add a1, a1, a0          /* Synchronous so update exception return address to the instruction after the instruction that generated the exception. */
+    csrr a0, scause
     store_x a1,  portSTACK_PXCODE_IDX * portWORD_SIZE(sp)   /* Save updated exception return address. */
     la sp, __freertos_irq_stack_top /* Switch to ISR stack. */
 .endm

@@ -1493,3 +1493,12 @@ DECLARE_CAUSE("store page fault", CAUSE_STORE_PAGE_FAULT)
 #define RISCV_INST_RS1(inst)          (((inst) >> 15) & 0x1F)
 #define RISCV_INST_RS2(inst)          (((inst) >> 20) & 0x1F)
 #define RISCV_INST_RD(inst)           (((inst) >>  7) & 0x1F)
+
+#define RISCV_C_INST_RS1(inst)          ((((inst) >>  7) & 0x7) + 0x08)
+#define RISCV_C_INST_RS2(inst)          ((((inst) >>  2) & 0x7) + 0x08)
+#define RISCV_C_INST_RD(inst)           ((((inst) >>  2) & 0x7) + 0x08)
+
+
+#define RISCV_C_INST_DECODE_MASK0       ((0x7 << 13) | (0x3 << 0))
+#define RISCV_INST_DECODE_C_LW          ((0x2 << 13) | (0x0 << 0))
+#define RISCV_INST_DECODE_C_SW          ((0x6 << 13) | (0x0 << 0))

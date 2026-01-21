@@ -8,6 +8,7 @@
 #include "tvisor_mmu.h"
 #include <stdint.h>
 #include "task.h"
+#include "tvisor_printf.h"
 
 const uint8_t regs_stack_idx_map[] = {
     [ 0] = 0,
@@ -49,6 +50,8 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
     size_t   fault_pc;
     size_t   fault_addr;
     uint64_t fault_value;
+    uint8_t  fault_access_type;
+    uint8_t  fault_access_size;
     uint64_t pte;
     uint8_t rs1;
     uint8_t rs2;
@@ -62,17 +65,47 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
         //VS/VU Mode
         fault_pc = sepc;
         fault_inst = tvisor_vm_read32(fault_pc);
-        rs1 = RISCV_INST_RS1(fault_inst);
-        rs2 = RISCV_INST_RS2(fault_inst);
-        rd  = RISCV_INST_RD(fault_inst);
-        *(volatile uint32_t *)0x10000000 = stack_ctx[regs_stack_idx_map[14]];
+        if((fault_inst & 0x03) == 0x03){
+            rs1 = RISCV_INST_RS1(fault_inst);
+            rs2 = RISCV_INST_RS2(fault_inst);
+            rd  = RISCV_INST_RD(fault_inst);
+            fault_addr = stack_ctx[regs_stack_idx_map[rs1]];
+            fault_value = stack_ctx[regs_stack_idx_map[rs2]];
+        }
+        else{
+            rs1 = RISCV_C_INST_RS1(fault_inst);
+            rs2 = RISCV_C_INST_RS2(fault_inst);
+            rd  = RISCV_C_INST_RD(fault_inst);
+            fault_addr = stack_ctx[regs_stack_idx_map[rs1]];
+            fault_value = stack_ctx[regs_stack_idx_map[rs2]];
+            switch(fault_inst & RISCV_C_INST_DECODE_MASK0){
+                case RISCV_INST_DECODE_C_LW:{
+
+                }
+                case RISCV_INST_DECODE_C_SW:{
+                    fault_access_type = 0;
+                    fault_access_size = 2;
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
+        }
     }
     else{
         fault_pc = sepc;
         fault_inst = *(volatile uint32_t *)fault_pc;
-        rs1 = RISCV_INST_RS1(fault_inst);
-        rs2 = RISCV_INST_RS2(fault_inst);
-        rd  = RISCV_INST_RD(fault_inst);
+        if((fault_inst & 0x03) == 0x03){
+            rs1 = RISCV_INST_RS1(fault_inst);
+            rs2 = RISCV_INST_RS2(fault_inst);
+            rd  = RISCV_INST_RD(fault_inst);
+            fault_addr = stack_ctx[regs_stack_idx_map[rs1]];
+            fault_value = stack_ctx[regs_stack_idx_map[rs2]];
+        }
+        else{
+            while(1);
+        }
         switch (fault_inst & RISCV_INST_DECODE_MASK0) {
             case RISCV_INST_DECODE_HLV_B:{
                 break;
@@ -110,18 +143,8 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
                         break;
                     }
                     case RISCV_INST_DECODE_HSV_W:{
-                        fault_addr = stack_ctx[regs_stack_idx_map[rs1]];
-                        fault_value = stack_ctx[regs_stack_idx_map[rs2]];
-                        if(tvisor_mmu_get_leaf_pte(ctx, fault_addr, &pte) != TVISOR_STATUS_OK){
-                            while(1);
-                        }
-                        dev_idx = (pte >> 10) & 0xFFFF;
-                        tvisor_dev_ops_list[ctx->dev_list[dev_idx].type]->write_register(
-                            (tvisor_dev_uart16550_ctx_t *)&(ctx->dev_list[dev_idx].ctx),
-                            fault_addr - ctx->dev_list[dev_idx].region.start_addr,
-                            fault_value,
-                            2
-                        );
+                        fault_access_type = 0;
+                        fault_access_size = 2;
                         break;
                     }
                     case RISCV_INST_DECODE_HSV_D:{
@@ -134,6 +157,18 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
                 break;
             }
         }
+    }
+    if(tvisor_mmu_get_leaf_pte(ctx, fault_addr, &pte) != TVISOR_STATUS_OK){
+        while(1);
+    }
+    dev_idx = (pte >> 10) & 0xFFFF;
+    if(fault_access_type == 0){
+        tvisor_dev_ops_list[ctx->dev_list[dev_idx].type]->write_register(
+            (tvisor_dev_uart16550_ctx_t *)&(ctx->dev_list[dev_idx].ctx),
+            fault_addr - ctx->dev_list[dev_idx].region.start_addr,
+            fault_value,
+            fault_access_size
+        );
     }
     return TVISOR_STATUS_OK;
 }

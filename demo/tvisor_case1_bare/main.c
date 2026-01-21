@@ -93,23 +93,8 @@ void irq_stimer_handler(void){
     sbi_timer_set( t);
 }
 
-
-void task_0_main( void * arg ){
-    int i=0;
-    tvisor_printf("enter task_0_main...\n");
-    while(1){
-        tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(time),uxTaskCurrentPrvModeGet());
-        tvisor_printf("task_0_main:hello u mode!\n");
-        vTaskDelay(100);
-    }
-}
-
-tvisor_vm_ctx_t vm_ctx = {
-    .entry_point_addr = (TaskFunction_t)0x80000000
-};
-
 int virt_dev_uart0_tx(tvisor_dev_uart16550_ctx_t *ctx,uint8_t data){
-    tvisor_printf("%c",data);
+    *(volatile uint32_t *)0x10000000 = data;
     return 0;
 }
 
@@ -119,6 +104,78 @@ int virt_puts(char *str){
     }
     return 0;
 }
+
+tvisor_vm_ctx_t vm_ctx_0 = {
+    .entry_point_addr = (TaskFunction_t)0x80000000
+};
+
+void task_0_main( void * arg ){
+    int i=0;// {}
+    uint64_t pte;
+    tvisor_dev_ctx_t dev_list[] = {
+        [0] = {
+            .type = TVISOR_DEV_TYPE_MEM,
+            .region = {
+                .start_addr = 0x80000000,
+                .size = 256*1024*1024,
+                .attr = TVISOR_MMU_PAGE_ATTR_MEM | TVISOR_MMU_PAGE_ATTR_U,
+                .pbmt = TVISOR_MMU_PAGE_PBMT_NONE
+            },
+        },
+        [1] = {
+            .type = TVISOR_DEV_TYPE_UART_16550,
+            .ctx = {
+                .uart16550_ctx = {
+                    .func_tx = virt_dev_uart0_tx
+                }
+            },
+            .region = {
+                .start_addr = 0x10000000,
+                .size = 4096,
+                .attr = TVISOR_MMU_PAGE_ATTR_U,
+                .pbmt = TVISOR_MMU_PAGE_PBMT_NC_MMIO
+            },
+        }
+    };
+    uxTaskCurrentHypervisorCtxSet(&vm_ctx_0);
+    tvisor_printf("enter task_0_main...\n");
+    vm_ctx_0.dev_list = dev_list;
+    vm_ctx_0.dev_num = 2;
+    vTaskEnterCritical();
+    tvisor_vm_create(&vm_ctx_0);
+    tvisor_mmu_map(&vm_ctx_0,dev_list[0].region.start_addr,256*1024*1024);
+    tvisor_mmu_map(&vm_ctx_0,dev_list[1].region.start_addr,dev_list[1].region.size);
+    tvisor_mmu_dump_map(&vm_ctx_0, 0x80000000 + 256*1024*1024 - 4);
+    write_csr(hgatp, vm_ctx_0.hgatp);
+    __asm volatile("HFENCE.GVMA");
+    __asm volatile("HFENCE.VVMA");
+    tvisor_vm_write32(0x80000000,0xa001a001);
+    tvisor_vm_write32(0x80000000 + 256*1024*1024 - 4,0x12345678);
+    tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000 + 256*1024*1024 - 4));
+    tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
+    tvisor_mmu_get_leaf_pte(&vm_ctx_0,dev_list[1].region.start_addr,&pte);
+    tvisor_printf("uart pte = %016lx\r\n",pte);
+    virt_puts("printf from virtual machine 0\r\n");
+    tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
+    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
+    for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
+        if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
+            while(1);
+        }
+    }
+    tvisor_vm_run(&vm_ctx_0);
+    vTaskExitCritical();
+
+    while(1){
+        tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
+        sbi_print("task_0_main:hello opensbi!\n");
+        vTaskDelay(100);
+    }
+}
+
+tvisor_vm_ctx_t vm_ctx_1 = {
+    .entry_point_addr = (TaskFunction_t)0x80000000
+};
 
 void task_1_main( void * arg ){
     int i=0;// {}
@@ -148,34 +205,34 @@ void task_1_main( void * arg ){
             },
         }
     };
-    uxTaskCurrentHypervisorCtxSet(&vm_ctx);
+    uxTaskCurrentHypervisorCtxSet(&vm_ctx_1);
     tvisor_printf("enter task_1_main...\n");
-    vm_ctx.dev_list = dev_list;
-    vm_ctx.dev_num = 2;
+    vm_ctx_1.dev_list = dev_list;
+    vm_ctx_1.dev_num = 2;
     vTaskEnterCritical();
-    tvisor_vm_create(&vm_ctx);
-    tvisor_mmu_map(&vm_ctx,dev_list[0].region.start_addr,256*1024*1024);
-    tvisor_mmu_map(&vm_ctx,dev_list[1].region.start_addr,dev_list[1].region.size);
-    tvisor_mmu_dump_map(&vm_ctx, 0x80000000 + 256*1024*1024 - 4);
-    write_csr(hgatp, vm_ctx.hgatp);
+    tvisor_vm_create(&vm_ctx_1);
+    tvisor_mmu_map(&vm_ctx_1,dev_list[0].region.start_addr,256*1024*1024);
+    tvisor_mmu_map(&vm_ctx_1,dev_list[1].region.start_addr,dev_list[1].region.size);
+    tvisor_mmu_dump_map(&vm_ctx_1, 0x80000000 + 256*1024*1024 - 4);
+    write_csr(hgatp, vm_ctx_1.hgatp);
     __asm volatile("HFENCE.GVMA");
     __asm volatile("HFENCE.VVMA");
     tvisor_vm_write32(0x80000000,0xa001a001);
     tvisor_vm_write32(0x80000000 + 256*1024*1024 - 4,0x12345678);
     tvisor_printf("data=%08lx\r\n",tvisor_vm_read32(0x80000000 + 256*1024*1024 - 4));
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
-    tvisor_mmu_get_leaf_pte(&vm_ctx,dev_list[1].region.start_addr,&pte);
+    tvisor_mmu_get_leaf_pte(&vm_ctx_1,dev_list[1].region.start_addr,&pte);
     tvisor_printf("uart pte = %016lx\r\n",pte);
     virt_puts("printf from virtual machine 0\r\n");
     tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
-    vTaskExitCritical();
     tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
     for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
         if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
             while(1);
         }
     }
-    tvisor_vm_run(&vm_ctx);
+    tvisor_vm_run(&vm_ctx_1);
+    vTaskExitCritical();
     while(1){
         tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
         sbi_print("task_1_main:hello opensbi!\n");
@@ -186,25 +243,18 @@ void task_1_main( void * arg ){
 int main(void){
     sbi_print("hello opensbi!\n");
     task_defualt_args_t task_0_args = {
-        .prv_mode = RISCV_PRV_U_MODE,
+        .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
     task_defualt_args_t task_1_args = {
         .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
-    write_csr(sscratch, 1);
-    write_csr(vsscratch, 2);
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
-    void * addr = tvisor_mmu_align_malloc(16384,16384);
-    tvisor_printf("Heap Size:%d,addr=%p\n",xPortGetFreeHeapSize(),addr);
-    tvisor_mmu_align_free(addr);
-    tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
-
-    xTaskCreate(task_0_main,"task_0_main",2028,&task_0_args,4,&task_0_main_handler);
-    xTaskCreate(task_1_main,"task_1_main",2028,&task_1_args,4,&task_1_main_handler);
+    xTaskCreate(task_0_main,"task_0_main",2048,&task_0_args,4,&task_0_main_handler);
+    xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
 }
 

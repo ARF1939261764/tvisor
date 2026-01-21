@@ -8,6 +8,8 @@
 #include "task.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "riscv_csr_encoding.h"
+#include "tvisor.h"
 
 BaseType_t xPortStartScheduler( void )
 {
@@ -19,6 +21,17 @@ BaseType_t xPortStartScheduler( void )
 void vPortEndScheduler( void )
 {
     for(;;){}
+}
+
+size_t xGetSepcIncr(uint64_t hstatus,size_t sepc){
+    uint32_t   fault_inst;
+    if(hstatus & HSTATUS_SPV){
+        fault_inst = tvisor_vm_read32(sepc);
+    }
+    else{
+        fault_inst = *(volatile uint32_t *)sepc;
+    }
+    return ((fault_inst & 0x03) != 0x03) ? 2 : 4;
 }
 
 StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
