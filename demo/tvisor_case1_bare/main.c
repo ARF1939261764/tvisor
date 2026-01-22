@@ -15,8 +15,8 @@
 #include "tvisor.h"
 #include "tvisor_mmu.h"
 
-extern unsigned char __firmware_build_smoke_main_bin[];
-extern unsigned int __firmware_build_smoke_main_bin_len;
+extern unsigned char __firmware_build_guest0_main_bin[];
+extern unsigned int __firmware_build_guest0_main_bin_len;
 
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
@@ -157,9 +157,9 @@ void task_0_main( void * arg ){
     tvisor_printf("uart pte = %016lx\r\n",pte);
     virt_puts("printf from virtual machine 0\r\n");
     tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
-    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
-    for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
-        if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
+    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_guest0_main_bin,__firmware_build_guest0_main_bin_len);
+    for(int i = 0;i<__firmware_build_guest0_main_bin_len;i++){
+        if(__firmware_build_guest0_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
             while(1);
         }
     }
@@ -167,8 +167,8 @@ void task_0_main( void * arg ){
     vTaskExitCritical();
 
     while(1){
-        tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
-        sbi_print("task_0_main:hello opensbi!\n");
+        // tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
+        // sbi_print("task_0_main:hello opensbi!\n");
         vTaskDelay(100);
     }
 }
@@ -225,17 +225,17 @@ void task_1_main( void * arg ){
     tvisor_printf("uart pte = %016lx\r\n",pte);
     virt_puts("printf from virtual machine 0\r\n");
     tvisor_printf("instr = %08x\r\n",tvisor_vm_read32(0x80000000));
-    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_smoke_main_bin,__firmware_build_smoke_main_bin_len);
-    for(int i = 0;i<__firmware_build_smoke_main_bin_len;i++){
-        if(__firmware_build_smoke_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
+    tvisor_vm_memcpy((void *)0x80000000,__firmware_build_guest0_main_bin,__firmware_build_guest0_main_bin_len);
+    for(int i = 0;i<__firmware_build_guest0_main_bin_len;i++){
+        if(__firmware_build_guest0_main_bin[i] != tvisor_vm_read8(0x80000000 + i)){
             while(1);
         }
     }
     tvisor_vm_run(&vm_ctx_1);
     vTaskExitCritical();
     while(1){
-        tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
-        sbi_print("task_1_main:hello opensbi!\n");
+        // tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
+        // sbi_print("task_1_main:hello opensbi!\n");
         vTaskDelay(100);
     }
 }
@@ -254,7 +254,7 @@ int main(void){
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     xTaskCreate(task_0_main,"task_0_main",2048,&task_0_args,4,&task_0_main_handler);
-    xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
+    // xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
 }
 

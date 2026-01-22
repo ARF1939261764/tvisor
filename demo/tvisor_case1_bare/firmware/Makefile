@@ -1,6 +1,6 @@
 .PHONY : build
 
-TESTNAME = smoke
+TESTNAME = guest0
 
 # 可执行文件名
 TARGET = main

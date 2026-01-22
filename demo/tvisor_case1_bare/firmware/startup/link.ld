@@ -46,6 +46,12 @@ SECTIONS {
     PROVIDE(__BSS_END__ = .);
   } >RAM
   
+  .shell_command ALIGN(CL_SIZE) : {
+    PROVIDE(_shell_command_start = .);
+    . += 4096;
+    PROVIDE(_shell_command_end = .);
+  } > RAM
+
   .stack ORIGIN(RAM) + LENGTH(RAM) - STACK_SIZE : {
     PROVIDE(__STACK_START__ = .);
     . += STACK_SIZE;
