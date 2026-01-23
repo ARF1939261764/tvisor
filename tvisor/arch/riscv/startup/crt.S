@@ -74,14 +74,11 @@ _clean_bss_end:
   csrr t0, sstatus                    /* Obtain current mstatus value. */
   andi t0, t0, ~0x2                   /* Ensure interrupts are disabled when the stack is restored within an ISR.  Required when a task is created after the schedulre has been started, otherwise interrupts would be disabled anyway. */
   csrw sstatus,t0
-
-  csrr t0, sstatus
-  ori t0, t0, 0Xa
-  csrw sstatus,t0
-
+  
   //sie
   csrr t0, sie
-  ori t0, t0, (1 << 5) | (1 << 9) | (1 << 11)
+  li t1,(1 << 5) | (1 << 9) | (1 << 11)
+  or t0, t0, t1
   csrw sie,t0
 
 

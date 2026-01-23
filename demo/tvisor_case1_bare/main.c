@@ -23,6 +23,7 @@ extern unsigned int __firmware_build_guest0_main_bin_len;
 
 void uart_init(void){
     write8(UART_IER,1);
+    write32(0xc000000 + 0x200,1 << 10);
 }
 
 // SBI扩展ID（ASCII码 "TIME"）
@@ -240,23 +241,6 @@ void task_1_main( void * arg ){
     }
     tvisor_vm_run(&vm_ctx_1);
     vTaskExitCritical();
-    while(1){
-        // tvisor_printf("task_1_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
-        // sbi_print("task_1_main:hello opensbi!\n");
-        vTaskDelay(100);
-    }
-}
-
-int main(void){
-    sbi_print("hello opensbi!\n");
-    task_defualt_args_t task_0_args = {
-        .prv_mode = RISCV_PRV_S_MODE,
-        .args = NULL,
-    };
-    task_defualt_args_t task_1_args = {
-        .prv_mode = RISCV_PRV_S_MODE,
-        .args = NULL,
-    };
     uart_init();
     while(1){
         if(read8(UART_LSR) & UART_LSR_DR){
@@ -271,11 +255,23 @@ int main(void){
             
         }
     }
+}
+
+int main(void){
+    sbi_print("hello opensbi!\n");
+    task_defualt_args_t task_0_args = {
+        .prv_mode = RISCV_PRV_S_MODE,
+        .args = NULL,
+    };
+    task_defualt_args_t task_1_args = {
+        .prv_mode = RISCV_PRV_S_MODE,
+        .args = NULL,
+    };
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     xTaskCreate(task_0_main,"task_0_main",2048,&task_0_args,4,&task_0_main_handler);
-    // xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
+    xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
 }
 
