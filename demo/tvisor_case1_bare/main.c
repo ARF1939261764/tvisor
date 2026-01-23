@@ -14,9 +14,16 @@
 #include "csr.h"
 #include "tvisor.h"
 #include "tvisor_mmu.h"
+#include "uart.h"
+#include "io.h"
 
 extern unsigned char __firmware_build_guest0_main_bin[];
 extern unsigned int __firmware_build_guest0_main_bin_len;
+
+
+void uart_init(void){
+    write8(UART_IER,1);
+}
 
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
@@ -250,6 +257,20 @@ int main(void){
         .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
+    uart_init();
+    while(1){
+        if(read8(UART_LSR) & UART_LSR_DR){
+            char value =read8(UART_DAT);
+            if(value == '\r'){
+                write8(UART_DAT, '\r');
+                write8(UART_DAT, '\n');
+            }
+            else{
+                write8(UART_DAT, value);
+            }
+            
+        }
+    }
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());

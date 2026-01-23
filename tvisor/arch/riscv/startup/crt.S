@@ -75,9 +75,13 @@ _clean_bss_end:
   andi t0, t0, ~0x2                   /* Ensure interrupts are disabled when the stack is restored within an ISR.  Required when a task is created after the schedulre has been started, otherwise interrupts would be disabled anyway. */
   csrw sstatus,t0
 
+  csrr t0, sstatus
+  ori t0, t0, 0Xa
+  csrw sstatus,t0
+
   //sie
   csrr t0, sie
-  ori t0, t0, 1 << 5
+  ori t0, t0, (1 << 5) | (1 << 9) | (1 << 11)
   csrw sie,t0
 
 
@@ -103,8 +107,10 @@ expection_handler:
   j     freertos_risc_v_stimer_interrupt_handler //5
   .word 0xdeaddead                               //6
   j     freertos_risc_v_mtimer_interrupt_handler //7
-  .word 0xdeaddead                               //8
-  .word 0xdeaddead                               //9
+  j     .                                        //8
+  j     .                                        //9
+  j     .                                        //10
+  j     .                                        //11
 
 .globl cpu_switch_to_s_mode
 .globl cpu_switch_to_hs_mode

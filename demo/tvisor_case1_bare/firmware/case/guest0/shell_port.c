@@ -48,9 +48,13 @@ short userShellWrite(char *data, unsigned short len)
  */
 short userShellRead(char *data, unsigned short len)
 {
-    static char *str = "\nls\n";
-    *data = *str;
-    return *str++ == '\0' ? 0 : 1;
+    uint32_t fifo_num,num;
+    fifo_num = *(volatile uint32_t *)(0x10000000 + 0x80);
+    num = fifo_num > len ? len : fifo_num;
+    for(int i=0;i<num;i++){
+        data[i] = *(volatile uint32_t *)(0x10000000 + 0x00);
+    }
+    return num;
 }
 
 /**

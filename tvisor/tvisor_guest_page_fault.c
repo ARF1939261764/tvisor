@@ -80,7 +80,9 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
             fault_value = stack_ctx[regs_stack_idx_map[rs2]];
             switch(fault_inst & RISCV_C_INST_DECODE_MASK0){
                 case RISCV_INST_DECODE_C_LW:{
-
+                    fault_access_type = 1;
+                    fault_access_size = 2;
+                    break;
                 }
                 case RISCV_INST_DECODE_C_SW:{
                     fault_access_type = 0;
@@ -169,6 +171,15 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
             fault_value,
             fault_access_size
         );
+    }
+    else{
+        tvisor_dev_ops_list[ctx->dev_list[dev_idx].type]->read_register(
+            (tvisor_dev_uart16550_ctx_t *)&(ctx->dev_list[dev_idx].ctx),
+            fault_addr - ctx->dev_list[dev_idx].region.start_addr,
+            &fault_value,
+            fault_access_size
+        );
+        stack_ctx[regs_stack_idx_map[rd]] = fault_value;
     }
     return TVISOR_STATUS_OK;
 }

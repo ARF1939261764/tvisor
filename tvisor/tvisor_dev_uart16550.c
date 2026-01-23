@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+
 static int tvisor_dev_uart16550_write_register(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset, uint64_t value, uint8_t size){
     switch(addr_offset){
         case 0x00:{
@@ -18,6 +19,19 @@ static int tvisor_dev_uart16550_write_register(tvisor_dev_uart16550_ctx_t *ctx, 
 }
 
 static int tvisor_dev_uart16550_read_register(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset,uint64_t *value,uint8_t size){
+    switch(addr_offset){
+        case 0x00:{
+            
+            break;
+        }
+        case 0x80:{
+            
+            break;
+        }
+        default:{
+            break;
+        }
+    }
     return TVISOR_STATUS_OK;
 }
 

@@ -73,6 +73,8 @@ freertos_risc_v_exception_handler:
     beq a0,t0,freertos_risc_v_ecall_exception_handler
     li   t0,0xa
     beq a0,t0,freertos_risc_v_ecall_exception_handler
+    li   t0,0x15
+    beq a0,t0,freertos_risc_v_guest_page_fault_exception_handler
     li   t0,0x17
     beq a0,t0,freertos_risc_v_guest_page_fault_exception_handler
     j freertos_risc_v_other_exception_handler
