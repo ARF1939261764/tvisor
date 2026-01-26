@@ -108,6 +108,19 @@ expection_handler:
   j     .                                        //9
   j     .                                        //10
   j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
+  j     .                                        //11
 
 .globl cpu_switch_to_s_mode
 .globl cpu_switch_to_hs_mode

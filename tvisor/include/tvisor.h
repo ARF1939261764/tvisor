@@ -13,7 +13,7 @@
 #define TVISOR_STATUS_ERROR (-1)
 #define TVISOR_STATUS_OK    ( 0)
 
-#define TVISOR_TASK_STACK_DEPTH   (2048)
+#define TVISOR_TASK_STACK_DEPTH   (4096)
 
 #define TVISOR_MMU_PAGE_ATTR_V       (1 << 0)
 #define TVISOR_MMU_PAGE_ATTR_R       (1 << 1)

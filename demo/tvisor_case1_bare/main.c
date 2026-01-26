@@ -23,7 +23,7 @@ extern unsigned int __firmware_build_guest0_main_bin_len;
 
 void uart_init(void){
     write8(UART_IER,1);
-    write32(0xc000000 + 0x200,1 << 10);
+    write32(0xc000000 + 0x2000,1 << 10);
 }
 
 // SBI扩展ID（ASCII码 "TIME"）
@@ -182,6 +182,7 @@ void task_0_main( void * arg ){
 }
 
 tvisor_vm_ctx_t vm_ctx_1 = {
+    .name = "vm_ctx_1",
     .entry_point_addr = (TaskFunction_t)0x80000000
 };
 
@@ -243,17 +244,17 @@ void task_1_main( void * arg ){
     vTaskExitCritical();
     uart_init();
     while(1){
-        if(read8(UART_LSR) & UART_LSR_DR){
-            char value =read8(UART_DAT);
-            if(value == '\r'){
-                write8(UART_DAT, '\r');
-                write8(UART_DAT, '\n');
-            }
-            else{
-                write8(UART_DAT, value);
-            }
-            
-        }
+        vTaskDelay(1);
+        // if(read8(UART_LSR) & UART_LSR_DR){
+        //     char value =read8(UART_DAT);
+        //     if(value == '\r'){
+        //         write8(UART_DAT, '\r');
+        //         write8(UART_DAT, '\n');
+        //     }
+        //     else{
+        //         write8(UART_DAT, value);
+        //     }
+        // }
     }
 }
 
@@ -270,8 +271,8 @@ int main(void){
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
-    xTaskCreate(task_0_main,"task_0_main",2048,&task_0_args,4,&task_0_main_handler);
-    xTaskCreate(task_1_main,"task_1_main",2048,&task_1_args,4,&task_1_main_handler);
+    xTaskCreate(task_0_main,"task_0_main",4096,&task_0_args,4,&task_0_main_handler);
+    xTaskCreate(task_1_main,"task_1_main",4096,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
 }
 
