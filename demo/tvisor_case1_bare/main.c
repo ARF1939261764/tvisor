@@ -23,7 +23,9 @@ extern unsigned int __firmware_build_guest0_main_bin_len;
 
 void uart_init(void){
     write8(UART_IER,1);
-    write32(0xc000000 + 0x2000,1 << 10);
+    write32(0xc000000 + 0x4 * 10,1);
+    write32(0xc000000 + 0x201000,0);
+    write32(0xc000000 + 0x2080,1 << 10);
 }
 
 // SBI扩展ID（ASCII码 "TIME"）
@@ -171,7 +173,7 @@ void task_0_main( void * arg ){
             while(1);
         }
     }
-    tvisor_vm_run(&vm_ctx_0);
+    // tvisor_vm_run(&vm_ctx_0);
     vTaskExitCritical();
 
     while(1){
@@ -240,7 +242,7 @@ void task_1_main( void * arg ){
             while(1);
         }
     }
-    tvisor_vm_run(&vm_ctx_1);
+    // tvisor_vm_run(&vm_ctx_1);
     vTaskExitCritical();
     uart_init();
     while(1){
