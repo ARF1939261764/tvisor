@@ -173,7 +173,7 @@ void task_0_main( void * arg ){
             while(1);
         }
     }
-    // tvisor_vm_run(&vm_ctx_0);
+    tvisor_vm_run(&vm_ctx_0);
     vTaskExitCritical();
 
     while(1){
@@ -242,7 +242,7 @@ void task_1_main( void * arg ){
             while(1);
         }
     }
-    // tvisor_vm_run(&vm_ctx_1);
+    tvisor_vm_run(&vm_ctx_1);
     vTaskExitCritical();
     uart_init();
     while(1){
