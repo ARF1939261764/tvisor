@@ -31,10 +31,9 @@ void uart_irq_handler(void){
 
 void uart_init(void){
     write8(UART_IER,1);
-    write32(0xc000000 + 0x4 * 10,1);
-    riscv_irq_register(IRQ_CTX_HART0_S, IRQ_UART0, uart_irq_handler);
-    riscv_irq_set_prior(IRQ_CTX_HART0_S,0);
-    riscv_irq_enable(IRQ_CTX_HART0_S, IRQ_UART0);
+    riscv_irq_set_prior(IRQ_UART0,1);
+    riscv_irq_register(IRQ_UART0, uart_irq_handler);
+    riscv_irq_enable(IRQ_UART0);
 }
 
 
@@ -281,6 +280,7 @@ int main(void){
         .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
+    riscv_irq_init();
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
