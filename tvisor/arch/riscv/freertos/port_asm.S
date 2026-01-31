@@ -4,6 +4,7 @@
 .global xPortStartFirstTask_asm
 .global freertos_risc_v_mtimer_interrupt_handler
 .global freertos_risc_v_stimer_interrupt_handler
+.global freertos_risc_v_sext_interrupt_handler
 .global freertos_risc_v_exception_handler
 .global vPortSwitchCtx
 
@@ -83,6 +84,12 @@ freertos_risc_v_stimer_interrupt_handler:
     portcontext_SAVE_CONTEXT_INTR
     call irq_stimer_handler
     call prvTickISR
+    portcontext_RESTORE_CONTEXT
+    sret
+
+freertos_risc_v_sext_interrupt_handler:
+    portcontext_SAVE_CONTEXT_INTR
+    call irq_sext_handler
     portcontext_RESTORE_CONTEXT
     sret
 

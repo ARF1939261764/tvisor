@@ -51,6 +51,7 @@ target_include_directories(ProjectCommonConfig INTERFACE
     ${PROJECT_SOURCE_DIR}/tvisor/include
     ${PROJECT_SOURCE_DIR}/tvisor/freertos/include
     ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/freertos/include
+    ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/irq/
     ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/include
     /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include
     /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include-fixed
@@ -71,6 +72,7 @@ target_compile_options(ProjectCommonConfig INTERFACE
 # 收集源文件（推荐手动列出，避免遗漏或误包含）
 set(DIR_TARGET_SRC
     ./tvisor/arch/riscv/freertos/port.c
+    ./tvisor/arch/riscv/irq/riscv_irq.c
     ./tvisor/arch/riscv/freertos/port_asm.S
     ./tvisor/arch/riscv/startup/crt.S
     ./tvisor/freertos/queue.c

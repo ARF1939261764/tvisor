@@ -104,8 +104,8 @@ expection_handler:
   j     freertos_risc_v_stimer_interrupt_handler //5
   .word 0xdeaddead                               //6
   j     freertos_risc_v_mtimer_interrupt_handler //7
-  j     .                                        //8
-  j     .                                        //9
+  .word 0xdeaddead                               //8
+  j     freertos_risc_v_sext_interrupt_handler   //9
   j     .                                        //10
   j     .                                        //11
   j     .                                        //11

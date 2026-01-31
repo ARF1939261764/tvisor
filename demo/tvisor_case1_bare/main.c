@@ -15,18 +15,29 @@
 #include "tvisor.h"
 #include "tvisor_mmu.h"
 #include "uart.h"
-#include "io.h"
+#include "tvisor_io.h"
+#include "riscv_irq.h"
 
 extern unsigned char __firmware_build_guest0_main_bin[];
 extern unsigned int __firmware_build_guest0_main_bin_len;
 
+void uart_irq_handler(void){
+    char c = read8(UART_DAT);
+    tvisor_printf("%c",c);
+    if(c == '\r'){
+        tvisor_printf("%c",'\n');
+    }
+}
 
 void uart_init(void){
     write8(UART_IER,1);
     write32(0xc000000 + 0x4 * 10,1);
-    write32(0xc000000 + 0x201000,0);
-    write32(0xc000000 + 0x2080,1 << 10);
+    riscv_irq_register(IRQ_CTX_HART0_S, IRQ_UART0, uart_irq_handler);
+    riscv_irq_set_prior(IRQ_CTX_HART0_S,0);
+    riscv_irq_enable(IRQ_CTX_HART0_S, IRQ_UART0);
 }
+
+
 
 // SBI扩展ID（ASCII码 "TIME"）
 #define SBI_EXT_TIMER          0x54494D45
