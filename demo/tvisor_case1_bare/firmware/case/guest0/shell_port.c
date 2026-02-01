@@ -55,7 +55,7 @@ short userShellRead(char *data, unsigned short len)
     i = 0;
     while((*(volatile uint8_t *)(0x10000000 + 0x05) & 0x01)){
         data[i++] = *(volatile uint32_t *)(0x10000000 + 0x00);
-        userShellWrite(data + i - 1,1);
+        // userShellWrite(data + i - 1,1);
         if(i >= len){
             break;
         }
