@@ -10,11 +10,11 @@ project(tvisor
 
 
 set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_AR riscv64-unknown-linux-gnu-ar)
-set(CMAKE_C_COMPILER riscv64-unknown-linux-gnu-gcc)
-set(CMAKE_OBJCOPY riscv64-unknown-linux-gnu-objcopy)
-set(CMAKE_OBJDUMP riscv64-unknown-linux-gnu-objdump)
-set(CMAKE_ASM_COMPILER riscv64-unknown-linux-gnu-gcc)
+set(CMAKE_AR riscv64-unknown-elf-ar)
+set(CMAKE_C_COMPILER riscv64-unknown-elf-gcc)
+set(CMAKE_OBJCOPY riscv64-unknown-elf-objcopy)
+set(CMAKE_OBJDUMP riscv64-unknown-elf-objdump)
+set(CMAKE_ASM_COMPILER riscv64-unknown-elf-gcc)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
@@ -53,20 +53,27 @@ target_include_directories(ProjectCommonConfig INTERFACE
     ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/freertos/include
     ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/irq/
     ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/include
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/include-fixed
-    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-linux-gnu/12.2.0/../../../../riscv64-unknown-linux-gnu/include
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-elf/12.2.0/include
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-elf/12.2.0/include-fixed
+    /home/tangf/04_softs/riscv-tools/bin/../lib/gcc/riscv64-unknown-elf/12.2.0/../../../../riscv64-unknown-elf/include
     /home/tangf/04_softs/riscv-tools/bin/../sysroot/usr/include
 )
 
 target_link_options(ProjectCommonConfig INTERFACE
-  -static -pie -Wl,--no-warn-rwx-segments -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles 
-  -lc -lgcc  -march=rv64gch -mabi=lp64d
+  -T ${PROJECT_SOURCE_DIR}/tvisor/arch/riscv/startup/link.ld -nostartfiles 
+  -Wl,--no-warn-rwx-segments 
+  -march=rv64gch -mabi=lp64d
+  -static
+  -Wl,-Map=output.map
+  -Wl,-z,norelro  # 禁用只读重定位
+  -Wl,--no-dynamic-linker  # 明确静态链接
 )
 
 target_compile_options(ProjectCommonConfig INTERFACE
-   -O0 -g3 -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las -static -std=gnu99 
-                                        -fno-common -fno-builtin-printf -march=rv64gch -mabi=lp64d  -mcmodel=medany
+   -O0 -g3 -std=gnu99 -march=rv64gch -mabi=lp64d -mcmodel=medany
+   -ffreestanding
+   -fno-plt  # 禁用PLT
+   -fno-pic  # 禁用位置无关代码
 )
  
 # 收集源文件（推荐手动列出，避免遗漏或误包含）

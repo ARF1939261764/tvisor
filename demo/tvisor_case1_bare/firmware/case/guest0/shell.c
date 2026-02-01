@@ -1711,7 +1711,7 @@ void shellHandler(Shell *shell, char data)
 {
     SHELL_ASSERT(data, return);
     SHELL_LOCK(shell);
-
+    shellPrint(shell, "debug:data = %c\r\n",data);
 #if SHELL_LOCK_TIMEOUT > 0
     if (shell->info.user->data.user.password
         && strlen(shell->info.user->data.user.password) != 0

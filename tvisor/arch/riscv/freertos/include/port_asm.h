@@ -101,6 +101,11 @@
     store_x t0, portSTACK_HSTATUS_IDX * portWORD_SIZE( sp )
     csrr t0, hgatp
     store_x t0, portSTACK_HGATP_IDX   * portWORD_SIZE( sp )
+
+    .option push
+    .option norelax
+    la    gp, __global_pointer$
+    .option pop
 .endm
 
 .macro portcontext_RESTORE_CONTEXT

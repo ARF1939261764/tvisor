@@ -37,15 +37,16 @@ struct tvisor_dev_ctx_struct_t{
     char                 *name;
     tvisor_dev_type_t     type;
     union{
+        uint32_t                   base;
         tvisor_dev_uart16550_ctx_t uart16550_ctx;
         tvisor_dev_plic_ctx_t      plic_ctx;
     }ctx;
 };
 
-typedef int (*tvisor_dev_init_t)(tvisor_dev_uart16550_ctx_t *ctx);
+typedef int (*tvisor_dev_init_t)(void *ctx);
 
-typedef int (*tvisor_dev_write_register_t)(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset, uint64_t value, uint8_t size);
-typedef int (*tvisor_dev_read_register_t)(tvisor_dev_uart16550_ctx_t *ctx, size_t addr_offset,uint64_t *value,uint8_t size);
+typedef int (*tvisor_dev_write_register_t)(void *ctx, size_t addr_offset, uint64_t value, uint8_t size);
+typedef int (*tvisor_dev_read_register_t)(void *ctx, size_t addr_offset,uint64_t *value,uint8_t size);
 
 
 typedef struct tvisor_dev_struct_ops_t{

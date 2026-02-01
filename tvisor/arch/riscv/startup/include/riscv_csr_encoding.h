@@ -1489,10 +1489,12 @@ DECLARE_CAUSE("store page fault", CAUSE_STORE_PAGE_FAULT)
 #define RISCV_INST_DECODE_HLV_WU      ((0x34UL << 25) | (0x01UL << 20) | (0x04UL << 12) | (0x73UL << 0))
 #define RISCV_INST_DECODE_HLV_D       ((0x36UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
 #define RISCV_INST_DECODE_HSV_D       ((0x37UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x73UL << 0))
+#define RISCV_INST_DECODE_LBU         ((0x00UL << 25) | (0x00UL << 20) | (0x04UL << 12) | (0x03UL << 0))
 
 #define RISCV_INST_RS1(inst)          (((inst) >> 15) & 0x1F)
 #define RISCV_INST_RS2(inst)          (((inst) >> 20) & 0x1F)
 #define RISCV_INST_RD(inst)           (((inst) >>  7) & 0x1F)
+#define RISCV_INST_OFFSET(inst)       (((int)(inst) >> 20))
 
 #define RISCV_C_INST_RS1(inst)          ((((inst) >>  7) & 0x7) + 0x08)
 #define RISCV_C_INST_RS2(inst)          ((((inst) >>  2) & 0x7) + 0x08)

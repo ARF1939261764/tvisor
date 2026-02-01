@@ -9,7 +9,7 @@ ARCH = g
 ABI = lp64d
 
 # gcc类型
-CROSS_COMPILE = riscv64-unknown-linux-gnu-
+CROSS_COMPILE = riscv64-unknown-elf-
 
 CC      = ${CROSS_COMPILE}gcc
 LD      = ${CROSS_COMPILE}ld
@@ -17,13 +17,11 @@ OBJCOPY = ${CROSS_COMPILE}objcopy
 OBJDUMP = ${CROSS_COMPILE}objdump
 READELF = ${CROSS_COMPILE}readelf
 
-CFLAGS := -O0 -g3 -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las \
-				  -static -std=gnu99 -fno-common -fno-builtin-printf \
-					-Wa,-march=rv64$(ARCH) -mabi=$(ABI)  -mcmodel=medany
+CFLAGS := -O0 -g3 -std=gnu99 -Wa,-march=rv64$(ARCH) -mabi=$(ABI)  -mcmodel=medany
 
 
 
-LDFLAGS   ?= -Wl,--no-warn-rwx-segments -T ./startup/link.ld -nostartfiles -nostdlib -lc -lgcc -march=rv64$(ARCH) -mabi=$(ABI)  -mcmodel=medany
+LDFLAGS   ?= -Wl,--no-warn-rwx-segments -T ./startup/link.ld -nostartfiles -march=rv64$(ARCH) -mabi=$(ABI)  -mcmodel=medany
 
 
 # 存放中间文件的路径

@@ -71,6 +71,17 @@ int tvisor_guest_page_fault_exception_handler(uint64_t sstatus,uint64_t sepc,uin
             rd  = RISCV_INST_RD(fault_inst);
             fault_addr = stack_ctx[regs_stack_idx_map[rs1]];
             fault_value = stack_ctx[regs_stack_idx_map[rs2]];
+            switch(fault_inst & RISCV_INST_DECODE_MASK0){
+                case RISCV_INST_DECODE_LBU:{
+                    fault_addr += RISCV_INST_OFFSET(fault_inst);
+                    fault_access_type = 1;
+                    fault_access_size = 0;
+                    break;
+                }
+                default:{
+                    break;
+                }
+            }
         }
         else{
             rs1 = RISCV_C_INST_RS1(fault_inst);

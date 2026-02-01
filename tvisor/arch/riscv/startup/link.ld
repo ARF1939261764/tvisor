@@ -47,7 +47,22 @@ SECTIONS {
     *(.dynbss) *(.bss .bss.* .gnu.linkonce.b.*) *(COMMON)
     PROVIDE(__BSS_END__ = .);
   } >RAM
-  
+  /* 在链接器脚本的SECTIONS部分 */
+.got : {
+    *(.got .got.*)
+} > RAM
+
+.plt : {
+    *(.plt .plt.*)
+} > RAM
+
+.igot.plt : {
+    *(.igot.plt)
+} > RAM
+
+.iplt : {
+    *(.iplt)
+} > RAM
   .irq_stack ORIGIN(RAM) + LENGTH(RAM) - STACK_SIZE - IRQ_STACK_SIZE : {
     PROVIDE(__IRQ_STACK_START__ = .);
     . += IRQ_STACK_SIZE;

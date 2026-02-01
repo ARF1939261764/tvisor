@@ -85,6 +85,7 @@ int tvisor_vm_create(tvisor_vm_ctx_ptr_t vm_ctx){
     //create device
     i = 0;
     while(vm_ctx->dev_list[i].type != TVISOR_DEV_TYPE_NONE){
+        tvisor_dev_ops_list[vm_ctx->dev_list[i].type]->init(&(vm_ctx->dev_list[i].ctx.base));
         i++;
     }
     return TVISOR_STATUS_OK;

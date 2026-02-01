@@ -48,39 +48,19 @@ short userShellWrite(char *data, unsigned short len)
  */
 short userShellRead(char *data, unsigned short len)
 {
-    uint32_t fifo_num,num;
-    fifo_num = *(volatile uint32_t *)(0x10000000 + 0x80);
-    num = fifo_num > len ? len : fifo_num;
-    for(int i=0;i<num;i++){
-        data[i] = *(volatile uint32_t *)(0x10000000 + 0x00);
+    uint32_t i;
+    if(len == 0){
+        return 0;
     }
-    return num;
-}
-
-/**
- * @brief 用户shell上锁
- * 
- * @param shell shell
- * 
- * @return int 0
- */
-int userShellLock(Shell *shell)
-{
-    // xSemaphoreTakeRecursive(shellMutex, portMAX_DELAY);
-    return 0;
-}
-
-/**
- * @brief 用户shell解锁
- * 
- * @param shell shell
- * 
- * @return int 0
- */
-int userShellUnlock(Shell *shell)
-{
-    // xSemaphoreGiveRecursive(shellMutex);
-    return 0;
+    i = 0;
+    while((*(volatile uint8_t *)(0x10000000 + 0x05) & 0x01)){
+        data[i++] = *(volatile uint32_t *)(0x10000000 + 0x00);
+        userShellWrite(data + i - 1,1);
+        if(i >= len){
+            break;
+        }
+    }
+    return i;
 }
 
 /**
@@ -89,18 +69,9 @@ int userShellUnlock(Shell *shell)
  */
 void userShellInit(void)
 {
-    // shellMutex = xSemaphoreCreateMutex();
-
     shell.write = userShellWrite;
     shell.read = userShellRead;
-    // shell.lock = userShellLock;
-    // shell.unlock = userShellUnlock;
+    shellInit(&shell, shellBuffer, 512);
     shellTask(&shell);
-    // shellInit(&shell, shellBuffer, 512);
-    // if (xTaskCreate(shellTask, "shell", 256, &shell, 5, NULL) != pdPASS)
-    // {
-    //     // logError("shell task creat failed");
-    // }
-}
-// CEVENT_EXPORT(EVENT_INIT_STAGE2, userShellInit);
 
+}

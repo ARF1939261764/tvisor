@@ -1,5 +1,4 @@
 #include "stdio.h"
-#include "printf.h"
 #include "uart.h"
 #include "rocc.h"
 #include <stdint.h>
@@ -20,7 +19,12 @@ int virt_puts(char *str){
 
 int main(void){
   virt_puts("hello guest os0\n");
+  // printf("hello world\r\n");
   userShellInit();
-  while(1);
+  // while(1){
+  //   if(*(volatile uint8_t *)(0x10000000 + 0x05) & 0x01){
+  //     uart_putc((uart_t *)0x10000000,*(volatile uint8_t *)(0x10000000));
+  //   }
+  // }
 }
 

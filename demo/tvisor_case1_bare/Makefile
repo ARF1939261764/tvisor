@@ -1,6 +1,8 @@
+TESTNAME := guest0
+
 all:
-	make -C ./firmware/ TESTNAME=guest0
-	xxd -i ./firmware/build/guest0/main.bin > guest0.c
+	make -C ./firmware/ TESTNAME=${TESTNAME}
+	xxd -i ./firmware/build/${TESTNAME}/main.bin > guest0.c
 
 clean:
-	make -C ./firmware/ clean
+	make -C ./firmware/ TESTNAME=${TESTNAME} clean

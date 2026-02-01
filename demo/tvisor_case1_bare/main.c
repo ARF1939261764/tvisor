@@ -18,15 +18,14 @@
 #include "tvisor_io.h"
 #include "riscv_irq.h"
 
+extern tvisor_vm_ctx_t vm_ctx_0;
+extern tvisor_vm_ctx_t vm_ctx_1;
+
 extern unsigned char __firmware_build_guest0_main_bin[];
 extern unsigned int __firmware_build_guest0_main_bin_len;
 
 void uart_irq_handler(void){
-    char c = read8(UART_DAT);
-    tvisor_printf("%c",c);
-    if(c == '\r'){
-        tvisor_printf("%c",'\n');
-    }
+    vm_ctx_0.dev_list[1].ctx.uart16550_ctx.func_rx_from_isr(&(vm_ctx_0.dev_list[1].ctx.uart16550_ctx),read8(UART_DAT));
 }
 
 void uart_init(void){
@@ -155,6 +154,9 @@ void task_0_main( void * arg ){
                 .attr = TVISOR_MMU_PAGE_ATTR_U,
                 .pbmt = TVISOR_MMU_PAGE_PBMT_NC_MMIO
             },
+        },
+        [2] = {
+            .type = TVISOR_DEV_TYPE_NONE
         }
     };
     uxTaskCurrentHypervisorCtxSet(&vm_ctx_0);
@@ -185,11 +187,10 @@ void task_0_main( void * arg ){
     }
     tvisor_vm_run(&vm_ctx_0);
     vTaskExitCritical();
+    uart_init();
 
     while(1){
-        // tvisor_printf("task_0_main:%ld,mode = %d\n",read_csr(sscratch),uxTaskCurrentPrvModeGet());
-        // sbi_print("task_0_main:hello opensbi!\n");
-        vTaskDelay(100);
+        vTaskDelay(1000);
     }
 }
 
@@ -224,6 +225,9 @@ void task_1_main( void * arg ){
                 .attr = TVISOR_MMU_PAGE_ATTR_U,
                 .pbmt = TVISOR_MMU_PAGE_PBMT_NC_MMIO
             },
+        },
+        [2] = {
+            .type = TVISOR_DEV_TYPE_NONE
         }
     };
     uxTaskCurrentHypervisorCtxSet(&vm_ctx_1);
@@ -254,7 +258,6 @@ void task_1_main( void * arg ){
     }
     tvisor_vm_run(&vm_ctx_1);
     vTaskExitCritical();
-    uart_init();
     while(1){
         vTaskDelay(1);
         // if(read8(UART_LSR) & UART_LSR_DR){
@@ -285,7 +288,7 @@ int main(void){
     vPortDefineHeapRegions(HeapRegionList);
     tvisor_printf("Heap Size:%d\n",xPortGetFreeHeapSize());
     xTaskCreate(task_0_main,"task_0_main",4096,&task_0_args,4,&task_0_main_handler);
-    xTaskCreate(task_1_main,"task_1_main",4096,&task_1_args,4,&task_1_main_handler);
+    // xTaskCreate(task_1_main,"task_1_main",4096,&task_1_args,4,&task_1_main_handler);
     vTaskStartScheduler();
 }
 
