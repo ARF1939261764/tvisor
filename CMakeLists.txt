@@ -65,7 +65,6 @@ target_link_options(ProjectCommonConfig INTERFACE
   -march=rv64gch -mabi=lp64d
   -static
   -Wl,-Map=output.map
-  -Wl,-z,norelro  # 禁用只读重定位
   -Wl,--no-dynamic-linker  # 明确静态链接
 )
 
