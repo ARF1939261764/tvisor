@@ -14,7 +14,11 @@
 #include "shell.h"
 #include <stdint.h>
 #include <stddef.h>
+#include "riscv_csr_encoding.h"
 
+uint64_t get_tick(void){
+    return read_csr(time) / 10e6;
+}
 
 Shell shell;
 char shellBuffer[512];
@@ -69,6 +73,7 @@ short userShellRead(char *data, unsigned short len)
  */
 void userShellInit(void)
 {
+    uint64_t time;
     shell.write = userShellWrite;
     shell.read = userShellRead;
     shellInit(&shell, shellBuffer, 512);

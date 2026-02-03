@@ -283,6 +283,7 @@ int main(void){
         .prv_mode = RISCV_PRV_S_MODE,
         .args = NULL,
     };
+    write_csr(hcounteren,read_csr(hcounteren) | (1 << 1));
     riscv_irq_init();
     tvisor_printf("%lx\n",8589934592);
     vPortDefineHeapRegions(HeapRegionList);
