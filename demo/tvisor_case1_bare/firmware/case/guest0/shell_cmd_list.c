@@ -57,7 +57,7 @@ const ShellCommand shellCommandList[] =
     SHELL_KEY_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
                    0x08000000, shellBackspace, backspace),
     SHELL_KEY_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-                   0x7F000000, shellDelete, delete),
+                   0x7F000000, shellBackspace, backspace),
     SHELL_KEY_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
                    0x1B5B337E, shellDelete, delete),
 #if SHELL_ENTER_LF == 1
