@@ -46,9 +46,9 @@ SECTIONS {
     PROVIDE(__BSS_END__ = .);
   } >RAM
   
-  .shell_command ALIGN(CL_SIZE) : {
+  .shellCommand ALIGN(CL_SIZE) : {
     PROVIDE(_shell_command_start = .);
-    . += 4096;
+    *(shellCommand)
     PROVIDE(_shell_command_end = .);
   } > RAM
 
