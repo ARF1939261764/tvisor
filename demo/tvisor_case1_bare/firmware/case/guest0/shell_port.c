@@ -17,7 +17,7 @@
 #include "riscv_csr_encoding.h"
 
 uint64_t get_tick(void){
-    return read_csr(time) / 10e6;
+    return read_csr(time) / 10000;
 }
 
 Shell shell;
